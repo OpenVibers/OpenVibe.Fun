@@ -1,0 +1,114 @@
+/* OpenVibe.Fun: the room's own pieces. Colours come from the theme (--bg-*, --text-*, --border) and the room's accent
+   (.ov-room: --room-accent, --room-strong, --room-fill, --room-on), so every theme, light or dark, wears it. Phone
+   first; nothing scrolls sideways. Places come from OpenStreetMap and say so. */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg-primary, #0a0f1c); color: var(--text-primary, #e6edf7); font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+.skip { position: absolute; left: -9999px; }
+.skip:focus { left: 12px; top: 12px; z-index: 99; padding: 8px 12px; border-radius: 10px; background: var(--bg-card, #0f1729); color: inherit; }
+.fu { display: block; }
+.fu a { color: var(--room-strong); }
+.fu .ovk-i { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.fu-wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px 64px; }
+.fu-narrow { max-width: 620px; }
+.fu-page-pad { padding-top: clamp(28px, 6vw, 64px); }
+.fu h2 { margin: 0; font-size: 1.2rem; font-weight: 800; letter-spacing: -.01em; }
+.fu-kicker { margin: 0 0 4px; font-size: .74rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--room-strong); }
+.fu-page-h { padding-top: clamp(20px, 4vw, 40px); margin-bottom: 22px; }
+.fu-page-h h1, .fu-entry-h h1 { margin: 0; font-size: clamp(1.9rem, 5vw, 3rem); font-weight: 800; letter-spacing: -.03em; line-height: 1.06; overflow-wrap: anywhere; }
+.fu-lede, .fu-summary { margin: 10px 0 0; max-width: 700px; color: var(--text-secondary, #96a7c2); line-height: 1.55; }
+.fu-fine, .fu-muted { color: var(--text-muted, #7386a3); font-size: .88rem; line-height: 1.55; }
+.fu-section { margin-top: clamp(28px, 4vw, 44px); }
+.fu-head-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.fu-count { color: var(--text-muted, #7386a3); font-size: .86rem; }
+.fu-more { display: inline-flex; align-items: center; gap: 2px; font-weight: 700; font-size: .9rem; text-decoration: none; }
+.fu-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.fu-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 18px; border: 0; border-radius: 999px; background: var(--room-fill); color: var(--room-on) !important; font: inherit; font-weight: 700; font-size: .95rem; text-decoration: none; cursor: pointer; }
+.fu-btn-quiet { background: transparent; color: var(--text-primary, #e6edf7) !important; border: 1px solid var(--border, #1f2d47); }
+.fu-btn-small { min-height: 34px; padding: 0 14px; font-size: .86rem; }
+.fu-btn.is-mine { background: color-mix(in srgb, var(--room-accent) 22%, transparent); color: var(--room-strong) !important; }
+.fu-btn:focus-visible { outline: 2px solid var(--room-accent); outline-offset: 2px; }
+.fu-note { margin: 14px 0; padding: 11px 14px; border-radius: 14px; font-weight: 600; background: color-mix(in srgb, var(--room-accent) 12%, transparent); border: 1px solid color-mix(in srgb, var(--room-accent) 30%, transparent); }
+.fu-note.is-bad { background: color-mix(in srgb, var(--error, #ef4444) 12%, transparent); border-color: color-mix(in srgb, var(--error, #ef4444) 35%, transparent); }
+.fu-empty { display: grid; justify-items: start; gap: 10px; padding: 22px; border-radius: 18px; border: 1px dashed var(--border, #1f2d47); color: var(--text-secondary, #96a7c2); }
+.fu-empty p { margin: 0; line-height: 1.5; }
+.fu-empty h1 { margin: 0; font-size: 1.6rem; color: var(--text-primary, #e6edf7); }
+
+
+.fu-card { padding: 18px; border-radius: 18px; background: var(--bg-card, #0f1729); border: 1px solid var(--border, #1f2d47); }
+.fu-form { display: grid; gap: 14px; }
+.fu-field { display: grid; gap: 6px; font-size: .82rem; font-weight: 700; color: var(--text-secondary, #96a7c2); min-width: 0; }
+.fu-field input, .fu-field select, .fu-field textarea { width: 100%; min-height: 42px; padding: 9px 12px; border-radius: 12px; border: 1px solid var(--border, #1f2d47); background: var(--bg-input, var(--bg-primary, #0a0f1c)); color: var(--text-primary, #e6edf7); font: inherit; font-size: .95rem; font-weight: 500; }
+.fu-field input:focus, .fu-field select:focus, .fu-field textarea:focus { outline: 2px solid var(--room-accent); outline-offset: 1px; border-color: transparent; }
+.fu-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 20px 0 0; }
+.fu-facts > div { padding: 12px 14px; border-radius: 14px; background: var(--bg-card, #0f1729); border: 1px solid var(--border, #1f2d47); min-width: 0; }
+.fu-facts dt { font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted, #7386a3); }
+.fu-facts dd { margin: 4px 0 0; font-weight: 700; overflow-wrap: anywhere; }
+.fu-eps { display: grid; gap: 10px; margin: 12px 0 0; }
+.fu-eps > div { padding: 12px 14px; border-radius: 14px; background: var(--bg-card, #0f1729); border: 1px solid var(--border, #1f2d47); }
+.fu-eps dt code { font-weight: 800; color: var(--room-strong); overflow-wrap: anywhere; }
+.fu-eps dd { margin: 6px 0 0; color: var(--text-secondary, #96a7c2); line-height: 1.5; }
+
+
+.fu-inline { margin: 0; display: inline; }
+.fu-list { margin: 0; padding-left: 20px; display: grid; gap: 6px; line-height: 1.55; color: var(--text-secondary, #96a7c2); }
+.fu-badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: .78rem; font-weight: 800; color: var(--room-on); background: var(--room-fill); }
+.fu-status { display: inline-flex; align-items: center; padding: 1px 9px; border-radius: 999px; font-size: .75rem; font-weight: 800; background: color-mix(in srgb, var(--text-muted, #7386a3) 16%, transparent); color: var(--text-secondary, #96a7c2); }
+.fu-status-accepted { color: var(--room-strong); background: color-mix(in srgb, var(--room-accent) 18%, transparent); }
+.fu-status-decided { color: var(--warning-text, #f59e0b); background: color-mix(in srgb, var(--warning, #f59e0b) 14%, transparent); }
+.fu-status-verified { color: var(--success-text, #22c55e); background: color-mix(in srgb, var(--success, #22c55e) 14%, transparent); }
+.fu-accessible { color: var(--success-text, #22c55e); font-weight: 700; }
+
+/* The motif: a city map where idea pins pop up and a quest card flips */
+.fu-map-motif { position: relative; width: min(100%, 440px); aspect-ratio: 420 / 280; margin: 0 auto; border-radius: 22px; overflow: hidden; background: color-mix(in srgb, var(--room-accent) 8%, var(--bg-card, #0f1729)); border: 1px solid var(--border, #1f2d47); }
+.fu-map-lines { position: absolute; inset: 0; width: 100%; height: 100%; }
+.fu-map-lines path { fill: none; stroke: var(--text-muted, #7386a3); stroke-opacity: .35; stroke-width: 6; stroke-linecap: round; }
+.fu-pin { position: absolute; translate: -50% -100%; padding: 5px 10px; border-radius: 10px 10px 10px 2px; font-size: .78rem; font-weight: 800; color: var(--room-on); background: var(--room-fill); box-shadow: 0 6px 16px rgba(0, 0, 0, .25); white-space: nowrap; }
+.fu-pin-1 { left: 22%; top: 30%; } .fu-pin-2 { left: 66%; top: 24%; } .fu-pin-3 { left: 40%; top: 72%; } .fu-pin-4 { left: 82%; top: 64%; }
+html.ov-motion .fu-map-motif .fu-pin { animation: fu-pop .5s cubic-bezier(.2,.9,.3,1.5) both; } .fu-pin-2 { animation-delay: .2s !important; } .fu-pin-3 { animation-delay: .4s !important; } .fu-pin-4 { animation-delay: .6s !important; }
+@keyframes fu-pop { from { opacity: 0; translate: -50% -60%; scale: .5; } }
+.fu-pin-static { position: static; translate: none; }
+.fu-flip-card { position: absolute; left: 50%; bottom: 8%; translate: -50% 0; display: grid; gap: 2px; width: min(70%, 260px); padding: 10px 14px; border-radius: 14px; background: var(--bg-card, #0f1729); border: 2px solid var(--room-accent); box-shadow: 0 12px 28px rgba(0, 0, 0, .3); transform-origin: center; }
+.fu-flip-card small { font-size: .68rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--room-strong); }
+.fu-flip-card b { font-size: .95rem; line-height: 1.3; }
+.fu-flip-card span { font-size: .76rem; color: var(--text-muted, #7386a3); }
+html.ov-motion .fu-flip-card { animation: fu-flip .8s cubic-bezier(.2,.7,.2,1) .9s both; }
+@keyframes fu-flip { from { transform: perspective(600px) rotateX(90deg); opacity: 0; } }
+
+/* Scenes' demos */
+.fu-demo-board, .fu-demo-plan, .fu-demo-verified { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; width: min(100%, 420px); margin: 0 auto; padding: 18px; border-radius: 18px; background: var(--bg-card, #0f1729); border: 1px solid var(--border, #1f2d47); }
+.fu-demo-board b, .fu-demo-plan b { font-size: 1.05rem; }
+.fu-demo-board small { flex-basis: 100%; color: var(--text-muted, #7386a3); }
+.fu-arrow { color: var(--room-strong); font-weight: 900; }
+
+/* Quests, plans, places, events, options */
+.fu-quests, .fu-plans, .fu-places, .fu-events, .fu-options, .fu-options-list, .fu-ideas { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.fu-quest-link, .fu-plan-link, .fu-place, .fu-event, .fu-option, .fu-idea { display: grid; gap: 6px; height: 100%; padding: 15px 16px; border-radius: 16px; text-decoration: none; color: var(--text-primary, #e6edf7) !important; background: var(--bg-card, #0f1729); border: 1px solid var(--border, #1f2d47); }
+.fu-quest-link:hover, .fu-plan-link:hover { border-color: color-mix(in srgb, var(--room-accent) 55%, var(--border, #1f2d47)); transform: translateY(-1px); }
+.fu-quest-link, .fu-plan-link { transition: border-color .15s, transform .15s; }
+.fu-quest-card, .fu-plan-card { display: grid; }
+.fu-quest-title, .fu-plan-title, .fu-place-body b, .fu-event-body b, .fu-option-body b { font-size: 1.04rem; font-weight: 800; line-height: 1.3; overflow-wrap: anywhere; }
+.fu-quest-meta, .fu-quest-foot, .fu-plan-meta, .fu-plan-foot, .fu-place-addr, .fu-place-type, .fu-event-meta, .fu-event-type, .fu-option-meta, .fu-hours { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: .82rem; color: var(--text-muted, #7386a3); }
+.fu-quest-detail, .fu-plan-detail, .fu-quest-body, .fu-place-body, .fu-event-body, .fu-option-body { display: grid; gap: 4px; min-width: 0; color: var(--text-secondary, #96a7c2); line-height: 1.5; }
+.fu-quest-facts, .fu-place-facts { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; font-size: .82rem; }
+.fu-place-links, .fu-event-links { display: flex; flex-wrap: wrap; gap: 10px; font-size: .86rem; font-weight: 700; }
+.fu-winner { border-color: var(--room-accent) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--room-accent) 16%, transparent); }
+.fu-votes { display: flex; align-items: center; gap: 8px; font-size: .84rem; color: var(--text-muted, #7386a3); }
+.fu-vote-bar { flex: 1; height: 8px; border-radius: 999px; background: color-mix(in srgb, var(--text-muted, #7386a3) 18%, transparent); overflow: hidden; }
+.fu-vote-bar > * , .fu-vote-bar::before { display: block; height: 100%; background: var(--room-fill); }
+.fu-add-option { margin-top: 12px; }
+
+/* The guide's map */
+.fu-guide-page .fu-map, .fu-map { position: relative; border-radius: 18px; overflow: hidden; border: 1px solid var(--border, #1f2d47); background: color-mix(in srgb, var(--room-accent) 6%, var(--bg-card, #0f1729)); min-height: 220px; }
+.fu-map-bg, .fu-map-grid { position: absolute; inset: 0; }
+.fu-map-grid { background-image: linear-gradient(var(--border, #1f2d47) 1px, transparent 1px), linear-gradient(90deg, var(--border, #1f2d47) 1px, transparent 1px); background-size: 40px 40px; opacity: .5; }
+
+/* The Live overlay (a quest on a stream) */
+.fu-overlay { display: grid; gap: 4px; max-width: 420px; padding: 14px 16px; border-radius: 16px; background: color-mix(in srgb, #000 70%, transparent); color: #fff; border: 2px solid var(--room-accent); }
+.fu-overlay-kicker { font-size: .7rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--room-accent); }
+.fu-overlay-title { font-size: 1.15rem; font-weight: 800; }
+.fu-overlay-meta, .fu-overlay-fine, .fu-overlay-place { font-size: .8rem; opacity: .85; }
+.fu-report summary { cursor: pointer; font-weight: 700; color: var(--text-secondary, #96a7c2); }
+
+@media (max-width: 759px) { .sc-room-pic .fu-pin, .sc-room-pic .fu-flip-card { display: none; } }
+@media (prefers-reduced-motion: reduce) { .fu-pin, .fu-flip-card { animation: none !important; } }
+html[data-ov-motion=reduced] .fu-pin, html[data-ov-motion=reduced] .fu-flip-card { animation: none !important; }
