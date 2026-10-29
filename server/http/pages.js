@@ -59,7 +59,7 @@ function createPageRoutes(ctx) {
     r.get('/', async (req, res) => {
         const [counts, featured, planOut] = await Promise.all([store.counts(), store.featuredQuests(6), store.listPlans({ limit: 4 })]);
         return page(req, res, {
-            index: true, cache: PUBLIC_CACHE,
+            index: true, cache: PUBLIC_CACHE, agentLayer: true,
             title: null,
             description: 'Something to do, alone, together, or live: IRL quests on OpenVibe.Live, a local guide from OpenStreetMap, and group plans that the group votes on.',
             jsonLd: homeJsonLd(config),
@@ -89,7 +89,7 @@ function createPageRoutes(ctx) {
             }
         }
         return page(req, res, {
-            index: true, cache: result ? PUBLIC_CACHE : null,
+            index: true, cache: result ? PUBLIC_CACHE : null, agentLayer: true,
             title: 'The local guide',
             description: 'What\'s fun near me? Places from OpenStreetMap and local events from Ticketmaster when a key is configured, with a map, times and links.',
             jsonLd: [seo.jsonLd.webPage({ name: 'The OpenVibe.Fun local guide', url: `${base()}/guide`, description: 'Places from OpenStreetMap, local events when Ticketmaster is configured.', siteUrl: base() })],
@@ -101,7 +101,7 @@ function createPageRoutes(ctx) {
     r.get('/quests', async (req, res) => {
         const out = await store.listQuests({ limit: 30 });
         return page(req, res, {
-            index: true, cache: PUBLIC_CACHE,
+            index: true, cache: PUBLIC_CACHE, agentLayer: true,
             title: 'IRL quests on Live',
             description: 'Viewers suggest, chat votes, the streamer accepts and a moderator or the chat verifies. Safe, accessible challenges for the real world.',
             jsonLd: [seo.jsonLd.webPage({ name: 'IRL quests on OpenVibe.Live', url: `${base()}/quests`, description: 'Safe IRL challenges for streamers and their chat.', siteUrl: base() })],
@@ -144,7 +144,7 @@ function createPageRoutes(ctx) {
         const mine = Boolean(signedIn(req) && rawBoard && rawBoard.streamer_subject === req.viewer.subject);
         const live = await liveOf(out.board.live_username);
         return page(req, res, {
-            index: false, title: out.board.title,
+            index: false, agentLayer: true, title: out.board.title,
             body: raw(views.board({ board: out.board, quests: out.quests, live, signedIn: Boolean(signedIn(req)), mine, staff: staffViewer(req), flash: req.query.saved === '1' ? 'Saved.' : null })),
         });
     });
@@ -186,7 +186,7 @@ function createPageRoutes(ctx) {
         if (!out) return notFound(req, res);
         const live = await liveOf(out.quest.streamer_username);
         return page(req, res, {
-            index: out.quest.visibility === 'public', cache: out.quest.visibility === 'public' ? PUBLIC_CACHE : null,
+            index: out.quest.visibility === 'public', agentLayer: out.quest.visibility === 'public', cache: out.quest.visibility === 'public' ? PUBLIC_CACHE : null,
             title: out.quest.title,
             description: out.quest.brief.slice(0, 160),
             jsonLd: out.quest.visibility === 'public' ? [seo.jsonLd.webPage({ name: out.quest.title, url: `${base()}/q/${out.quest.slug}`, description: out.quest.brief.slice(0, 160), siteUrl: base() })] : [],
@@ -252,7 +252,7 @@ function createPageRoutes(ctx) {
     r.get('/plans', async (req, res) => {
         const out = await store.listPlans({ limit: 30 });
         return page(req, res, {
-            index: true, cache: PUBLIC_CACHE,
+            index: true, cache: PUBLIC_CACHE, agentLayer: true,
             title: 'Group plans',
             description: 'Two or three options, one link, one vote each. The group picks the plan and the winner can go to Today.',
             jsonLd: [seo.jsonLd.webPage({ name: 'Group plans on OpenVibe.Fun', url: `${base()}/plans`, description: 'Decide a plan together and send the winner to Today.', siteUrl: base() })],
@@ -285,7 +285,7 @@ function createPageRoutes(ctx) {
         const out = await store.planForPage(String(req.params.slug || ''), { subject: signedIn(req) ? req.viewer.subject : null, staff: staffViewer(req) });
         if (!out) return notFound(req, res);
         return page(req, res, {
-            index: out.plan.visibility === 'public', cache: out.plan.visibility === 'public' ? PUBLIC_CACHE : null,
+            index: out.plan.visibility === 'public', agentLayer: out.plan.visibility === 'public', cache: out.plan.visibility === 'public' ? PUBLIC_CACHE : null,
             title: out.plan.title,
             description: (out.plan.summary || 'A group plan on OpenVibe.Fun').slice(0, 160),
             jsonLd: out.plan.visibility === 'public' ? [seo.jsonLd.webPage({ name: out.plan.title, url: `${base()}/plans/${out.plan.slug}`, description: (out.plan.summary || 'A group plan on OpenVibe.Fun').slice(0, 160), siteUrl: base() })] : [],
@@ -360,7 +360,7 @@ function createPageRoutes(ctx) {
 
     // ── Developers, discovery, 404 ──────────────────────────
     r.get('/developers', (req, res) => page(req, res, {
-        index: true, cache: PUBLIC_CACHE,
+        index: true, cache: PUBLIC_CACHE, agentLayer: true,
         title: 'The OpenVibe.Fun API',
         description: 'The JSON API, the Search documents, the public sources and the safety rules.',
         jsonLd: [seo.jsonLd.webPage({ name: 'The OpenVibe.Fun API', url: `${base()}/developers`, description: 'The JSON API, the Search documents and the public sources.', siteUrl: base() })],
