@@ -33,7 +33,7 @@ const RULES = Object.freeze([
     {
         code: 'adult',
         why: 'That challenge is not suitable for a public stream.',
-        re: /\b(naked|nude|strip(?:ping|tease)?|porn(?:ography)?|sex(?:ual)?|escort)\b/i,
+        re: /\b(porn(?:ography)?|sex(?:\s+acts?)?|escort)\b/i,
     },
 ]);
 

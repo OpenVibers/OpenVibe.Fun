@@ -11,7 +11,6 @@
 const crypto = require('crypto');
 const { ids } = require('openvibe-contracts');
 const safety = require('./quests/safety');
-const { cleanSummary } = require('./text/no-looks');
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const USERNAME_RE = /^[A-Za-z0-9_][A-Za-z0-9_.-]{0,63}$/;
