@@ -112,3 +112,11 @@ html.ov-motion .fu-flip-card { animation: fu-flip .8s cubic-bezier(.2,.7,.2,1) .
 @media (max-width: 759px) { .sc-room-pic .fu-pin, .sc-room-pic .fu-flip-card { display: none; } }
 @media (prefers-reduced-motion: reduce) { .fu-pin, .fu-flip-card { animation: none !important; } }
 html[data-ov-motion=reduced] .fu-pin, html[data-ov-motion=reduced] .fu-flip-card { animation: none !important; }
+
+/* Real things first (10-31): the guide's call to action, and one short "be the first" row for what has no entries yet. */
+.fu-cta { display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: 999px; background: var(--room-strong, var(--room-accent)); color: var(--room-on, #fff); font-weight: 700; text-decoration: none; }
+.fu-cta:focus-visible { outline: 2px solid var(--room-accent); outline-offset: 3px; }
+.fu-first-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 10px; }
+.fu-first-list li { display: grid; gap: 4px; padding: 14px 16px; border-radius: 16px; border: 1px dashed color-mix(in srgb, var(--room-accent) 45%, var(--border, #2c3d5c)); }
+.fu-first-list span { color: var(--text-secondary, #a8b3c4); font-size: 14px; line-height: 1.45; }
+.fu-first-list a { justify-self: start; margin-top: 4px; font-weight: 700; color: var(--room-accent); }

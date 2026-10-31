@@ -63,18 +63,27 @@ function cityMotif() {
 }
 
 function home({ counts = {}, featured = [], plans = [] } = {}) {
-    const live = `<section class="fu-section" id="fu-featured" aria-labelledby="fu-featured-h">
-<div class="fu-head-row"><h2 id="fu-featured-h">IRL quests on Live</h2><a class="fu-more" href="/quests">All quests</a></div>
-${featured.length ? `<ol class="fu-quests">${featured.slice(0, 6).map(questCard).join('')}</ol>` : empty('No IRL quest is public yet. A streamer opens a board and chat suggests the first one.', '/live', 'Open a board on Live')}
-</section>
-<section class="fu-section" id="fu-plans" aria-labelledby="fu-plans-h">
-<div class="fu-head-row"><h2 id="fu-plans-h">Plans, decided together</h2><a class="fu-more" href="/plans">All plans</a></div>
-${plans.length ? `<ol class="fu-plans">${plans.slice(0, 4).map(planCard).join('')}</ol>` : empty('No group plan is public yet. Start one and send the link to the group.', '/plans/new', 'Start a plan')}
-</section>
-<section class="fu-section" id="fu-guide-teaser" aria-labelledby="fu-guide-teaser-h">
+    // Real things first (owner, 10-31: empty sections made the rooms look unfinished). The local guide always has
+    // something; quests and plans lead once there are some, and until then share one short "be the first" row below.
+    const guide = `<section class="fu-section" id="fu-guide-teaser" aria-labelledby="fu-guide-teaser-h">
 <div class="fu-head-row"><h2 id="fu-guide-teaser-h">What's fun near me?</h2><a class="fu-more" href="/guide">The local guide</a></div>
 <p class="fu-lede">A city, a rainy afternoon or a cheap date: places from OpenStreetMap, local events from Ticketmaster when a key is configured, and a map link for every answer. No model call, no paid provider.</p>
+<p><a class="fu-cta" href="/guide">Find something near me</a></p>
 </section>`;
+    const questsSec = featured.length ? `<section class="fu-section" id="fu-featured" aria-labelledby="fu-featured-h">
+<div class="fu-head-row"><h2 id="fu-featured-h">IRL quests on Live</h2><a class="fu-more" href="/quests">All quests</a></div>
+<ol class="fu-quests">${featured.slice(0, 6).map(questCard).join('')}</ol>
+</section>` : '';
+    const plansSec = plans.length ? `<section class="fu-section" id="fu-plans" aria-labelledby="fu-plans-h">
+<div class="fu-head-row"><h2 id="fu-plans-h">Plans, decided together</h2><a class="fu-more" href="/plans">All plans</a></div>
+<ol class="fu-plans">${plans.slice(0, 4).map(planCard).join('')}</ol>
+</section>` : '';
+    const first = [
+        !featured.length ? `<li><b>IRL quests on Live</b><span>A streamer opens a board and chat suggests the first one.</span><a href="/live">Open a board</a></li>` : '',
+        !plans.length ? `<li><b>Plans, decided together</b><span>Start one and send the link to the group; the vote picks.</span><a href="/plans/new">Start a plan</a></li>` : '',
+    ].filter(Boolean).join('');
+    const beFirst = first ? `<section class="fu-section fu-first" aria-labelledby="fu-first-h"><h2 id="fu-first-h">Be the first</h2><ul class="fu-first-list">${first}</ul></section>` : '';
+    const live = `${questsSec}${plansSec}${guide}${beFirst}`;
     const room = sc.room({
         room: 'fun',
         hero: {
