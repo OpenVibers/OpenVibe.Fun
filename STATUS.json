@@ -10,11 +10,11 @@
   "domain": "openvibe.fun",
   "contracts": "openvibe-contracts v0.236.0",
   "sdk": "openvibe-sdk v0.74.0",
-  "shared": "openvibe-shared v4.57.1",
+  "shared": "openvibe-shared v4.58.0",
   "packages": [
     "openvibe-contracts v0.236.0",
     "openvibe-sdk v0.74.0",
-    "openvibe-shared v4.57.1"
+    "openvibe-shared v4.58.0"
   ],
   "summary": "OpenVibe.Fun is the Fun room. A streamer opens an IRL quest board on their public Live channel, viewers suggest safe challenges and chat votes with !quest vote, the streamer accepts one and marks it live/completed, and the chat or a moderator verifies it; a local badge is paid and OpenCoins are credited only when the wallet is configured. The local guide reads OpenStreetMap (Nominatim/Overpass with a contact User-Agent, one request a second per host, a seven-day cache and a bounded around: query) and Ticketmaster only when a key is configured. Group plans have options, one vote each, a tie refused, and a winner the viewer can add to their own Today with their own token. No route needs a service token; Fun never posts to Chat or Live.",
   "works": [
