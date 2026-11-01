@@ -36,6 +36,20 @@ html, body { margin: 0; background: var(--bg-primary, #0a0f1c); color: var(--tex
 
 .fu-card { padding: 18px; border-radius: 18px; background: var(--bg-card, #0f1729); border: 1px solid var(--border, #1f2d47); }
 .fu-form { display: grid; gap: 14px; }
+/* Toggles: a checkbox in a pill, the whole pill its target; a checked one fills with the room's colour (the guide's
+   four filters wrapped mid-row as bare browser checkboxes; domain sweep, 2026-11-01). */
+.fu-checks { display: flex; flex-wrap: wrap; gap: 8px; }
+.fu-checks-label { flex-basis: 100%; font-size: .82rem; font-weight: 700; color: var(--text-secondary, #96a7c2); }
+.fu-checks > label, .fu-check { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px 0 11px; border-radius: 999px;
+    border: 1px solid var(--border, #1f2d47); background: color-mix(in srgb, var(--text-primary, #fff) 4%, transparent); color: var(--text-secondary, #96a7c2);
+    font-size: .9rem; font-weight: 600; line-height: 1.2; cursor: pointer; user-select: none;
+    transition: border-color var(--ov-dur-1, .12s) var(--ov-ease-out, ease), background var(--ov-dur-1, .12s) var(--ov-ease-out, ease), color var(--ov-dur-1, .12s) var(--ov-ease-out, ease); }
+.fu-check { justify-self: start; }
+.fu-checks input, .fu-check input { flex: none; width: 18px; height: 18px; margin: 0; accent-color: var(--room-accent); }
+.fu-checks > label:hover, .fu-check:hover { border-color: var(--room-accent); color: var(--text-primary, #e6edf7); }
+.fu-checks > label:has(input:checked), .fu-check:has(input:checked) { border-color: var(--room-accent); background: color-mix(in srgb, var(--room-accent) 16%, transparent); color: var(--text-primary, #e6edf7); }
+.fu-checks > label:has(input:focus-visible), .fu-check:has(input:focus-visible) { outline: 2px solid var(--room-accent); outline-offset: 2px; }
+@media (pointer: coarse) { .fu-checks > label, .fu-check { min-height: 44px; } }
 .fu-field { display: grid; gap: 6px; font-size: .82rem; font-weight: 700; color: var(--text-secondary, #96a7c2); min-width: 0; }
 .fu-field input, .fu-field select, .fu-field textarea { width: 100%; min-height: 42px; padding: 9px 12px; border-radius: 12px; border: 1px solid var(--border, #1f2d47); background: var(--bg-input, var(--bg-primary, #0a0f1c)); color: var(--text-primary, #e6edf7); font: inherit; font-size: .95rem; font-weight: 500; }
 .fu-field input:focus, .fu-field select:focus, .fu-field textarea:focus { outline: 2px solid var(--room-accent); outline-offset: 1px; border-color: transparent; }
