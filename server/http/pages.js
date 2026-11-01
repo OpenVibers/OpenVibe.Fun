@@ -63,7 +63,7 @@ function createPageRoutes(ctx) {
             title: null,
             description: 'Something to do, alone, together, or live: IRL quests on OpenVibe.Live, a local guide from OpenStreetMap, and group plans that the group votes on.',
             jsonLd: homeJsonLd(config),
-            body: raw(views.home({ counts, featured, plans: planOut.plans })),
+            body: raw(views.home({ counts, featured, plans: planOut.plans, now: s.now(), base: base() })),
         });
     });
 
@@ -256,7 +256,7 @@ function createPageRoutes(ctx) {
             title: 'Group plans',
             description: 'Two or three options, one link, one vote each. The group picks the plan and the winner can go to Today.',
             jsonLd: [seo.jsonLd.webPage({ name: 'Group plans on OpenVibe.Fun', url: `${base()}/plans`, description: 'Decide a plan together and send the winner to Today.', siteUrl: base() })],
-            body: raw(views.plans({ plans: out.plans })),
+            body: raw(views.plans({ plans: out.plans, now: s.now(), base: base() })),
         });
     });
 
@@ -289,7 +289,7 @@ function createPageRoutes(ctx) {
             title: out.plan.title,
             description: (out.plan.summary || 'A group plan on OpenVibe.Fun').slice(0, 160),
             jsonLd: out.plan.visibility === 'public' ? [seo.jsonLd.webPage({ name: out.plan.title, url: `${base()}/plans/${out.plan.slug}`, description: (out.plan.summary || 'A group plan on OpenVibe.Fun').slice(0, 160), siteUrl: base() })] : [],
-            body: raw(views.plan({ p: out.plan, options: out.options, winner: out.winner, signedIn: Boolean(signedIn(req)), mine: out.isOwner, staff: staffViewer(req), flash, problem, myOptionId: out.plan.my_option_id, totalVotes: out.plan.total_votes })),
+            body: raw(views.plan({ p: out.plan, options: out.options, winner: out.winner, signedIn: Boolean(signedIn(req)), mine: out.isOwner, staff: staffViewer(req), flash, problem, myOptionId: out.plan.my_option_id, totalVotes: out.plan.total_votes, now: s.now(), base: base() })),
         }, status);
     }
     r.get('/plans/:slug', (req, res) => renderPlan(req, res, { flash: req.query.reported === '1' ? 'Thank you. Staff will look at the report.' : req.query.decided === '1' ? 'The winner is chosen.' : null }));
