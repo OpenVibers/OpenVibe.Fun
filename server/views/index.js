@@ -20,6 +20,7 @@
  */
 const { esc } = require('../render/html');
 const sc = require('openvibe-shared/showcase');
+const { remindLink } = require('./remind');
 
 const STATUS_LABEL = { suggested: 'Suggested', accepted: 'Accepted', live: 'Live now', completed: 'Completed', verified: 'Verified', rejected: 'Not chosen', hidden: 'Hidden', voting: 'Voting', decided: 'Decided', cancelled: 'Cancelled' };
 const CATEGORY_LABEL = { near_me: 'Near me', outside: 'Outside', brainy: 'Brainy', silly: 'Silly', chill: 'Chill' };
@@ -45,12 +46,16 @@ function questCard(q) {
 </a></li>`;
 }
 
-function planCard(p) {
+function planCard(p, { now = Date.now(), base = '' } = {}) {
+    // "Remind me" for the moment the plan starts (plan L48 R3): a quiet link in the card's own line, only when the
+    // start is still ahead.
+    const remind = remindLink(p, { now, url: base ? `${base}/plans/${encodeURIComponent(p.slug)}` : '' });
     return `<li class="fu-plan-card" data-plan="${esc(p.slug)}">
 <a class="fu-plan-link" href="/plans/${esc(p.slug)}">
 <span class="fu-plan-title">${esc(p.title)}</span>
-<span class="fu-plan-meta">${statusBadge(p.status)} · ${when(p.starts_at)}${p.city ? ` · ${esc(p.city)}` : ''}</span>
-</a></li>`;
+</a>
+<span class="fu-plan-meta">${statusBadge(p.status)} · ${when(p.starts_at)}${p.city ? ` · ${esc(p.city)}` : ''}${remind ? ` · ${remind}` : ''}</span>
+</li>`;
 }
 
 /** The home's picture: a small city block with idea pins and a quest card flipping up. */
@@ -62,7 +67,7 @@ function cityMotif() {
 </div>`;
 }
 
-function home({ counts = {}, featured = [], plans = [] } = {}) {
+function home({ counts = {}, featured = [], plans = [], now = Date.now(), base = '' } = {}) {
     // Real things first (owner, 10-31: empty sections made the rooms look unfinished). The local guide always has
     // something; quests and plans lead once there are some, and until then share one short "be the first" row below.
     const guide = `<section class="fu-section" id="fu-guide-teaser" aria-labelledby="fu-guide-teaser-h">
@@ -76,7 +81,7 @@ function home({ counts = {}, featured = [], plans = [] } = {}) {
 </section>` : '';
     const plansSec = plans.length ? `<section class="fu-section" id="fu-plans" aria-labelledby="fu-plans-h">
 <div class="fu-head-row"><h2 id="fu-plans-h">Plans, decided together</h2><a class="fu-more" href="/plans">All plans</a></div>
-<ol class="fu-plans">${plans.slice(0, 4).map(planCard).join('')}</ol>
+<ol class="fu-plans">${plans.slice(0, 4).map((p) => planCard(p, { now, base })).join('')}</ol>
 </section>` : '';
     const first = [
         !featured.length ? `<li><b>IRL quests on Live</b><span>A streamer opens a board and chat suggests the first one.</span><a href="/live">Open a board</a></li>` : '',
@@ -317,17 +322,20 @@ ${opts.map((o, i) => `<label class="fu-field"><span>Option ${i + 1}${i === 0 ? '
 </form></div>`;
 }
 
-function plans({ plans: list = [] } = {}) {
+function plans({ plans: list = [], now = Date.now(), base = '' } = {}) {
     return `<div class="fu-wrap" id="fu-plans">
 <header class="fu-page-h"><p class="fu-kicker">Group plans</p><h1>Decide it together</h1>
 <p class="fu-lede">Two or three options, one link, one vote each. The winner is chosen by the group and can go to Today. A plan with votes from public chat shows the matching command.</p>
 <div class="fu-actions"><a class="fu-btn" href="/plans/new">Start a plan</a><a class="fu-btn fu-btn-quiet" href="/guide">Find a place</a></div></header>
-${list.length ? `<ol class="fu-plans" id="fu-public-plans">${list.map(planCard).join('')}</ol>` : empty('No public plan yet. Start one and share the link with the group.', '/plans/new', 'Start a plan')}
+${list.length ? `<ol class="fu-plans" id="fu-public-plans">${list.map((p) => planCard(p, { now, base })).join('')}</ol>` : empty('No public plan yet. Start one and share the link with the group.', '/plans/new', 'Start a plan')}
 </div>`;
 }
 
-function plan({ p, options = [], winner = null, signedIn = false, mine = false, staff = false, flash = null, problem = null, myOptionId = null, totalVotes = 0 } = {}) {
+function plan({ p, options = [], winner = null, signedIn = false, mine = false, staff = false, flash = null, problem = null, myOptionId = null, totalVotes = 0, now = Date.now(), base = '' } = {}) {
     const owner = mine || staff;
+    // "Remind me" for the moment the plan starts (plan L48 R3), beside the page's own actions; only when the start
+    // is still ahead.
+    const remind = remindLink(p, { now, url: base ? `${base}/plans/${encodeURIComponent(p.slug)}` : '', action: true });
     return `<div class="fu-wrap" id="fu-plan" data-plan="${esc(p.slug)}">
 <article class="fu-plan-detail">
 <header class="fu-page-h"><p class="fu-kicker">${statusBadge(p.status)} · ${p.visibility === 'public' ? 'public' : p.visibility === 'unlisted' ? 'share link' : 'private'}</p><h1>${esc(p.title)}</h1>
@@ -360,7 +368,7 @@ ${signedIn ? `<details class="fu-report"><summary>Report this plan</summary><for
 <button class="fu-btn fu-btn-quiet" type="submit">Send the report</button></form></details>` : `<p class="fu-muted"><a href="/auth/login?next=${encodeURIComponent(`/plans/${p.slug}`)}">Sign in</a> to report.</p>`}
 ${staff ? `<form method="post" action="/plans/${esc(p.slug)}/hide" class="fu-inline"><button class="fu-btn fu-btn-quiet" type="submit">Hide (staff)</button></form>` : ''}
 </section>
-<footer class="fu-plan-foot"><a class="fu-btn fu-btn-quiet" href="/plans">All plans</a><span class="fu-fine">Share link: ${esc(p.slug)}</span></footer>
+<footer class="fu-plan-foot"><a class="fu-btn fu-btn-quiet" href="/plans">All plans</a>${remind}<span class="fu-fine">Share link: ${esc(p.slug)}</span></footer>
 </article></div>`;
 }
 

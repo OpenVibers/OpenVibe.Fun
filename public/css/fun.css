@@ -86,6 +86,14 @@ html.ov-motion .fu-flip-card { animation: fu-flip .8s cubic-bezier(.2,.7,.2,1) .
 .fu-quest-link:hover, .fu-plan-link:hover { border-color: color-mix(in srgb, var(--room-accent) 55%, var(--border, #1f2d47)); transform: translateY(-1px); }
 .fu-quest-link, .fu-plan-link { transition: border-color .15s, transform .15s; }
 .fu-quest-card, .fu-plan-card { display: grid; }
+/* The plan card carries its own box now: the title is the link, and the line under it holds the time and the
+   "Remind me" link (plan L48 R3). */
+.fu-plan-card { gap: 6px; align-content: start; height: 100%; padding: 15px 16px; border-radius: 16px; background: var(--bg-card, #0f1729); border: 1px solid var(--border, #1f2d47); transition: border-color .15s, transform .15s; }
+.fu-plan-card:hover { border-color: color-mix(in srgb, var(--room-accent) 55%, var(--border, #1f2d47)); transform: translateY(-1px); }
+.fu-plan-card .fu-plan-link { display: block; height: auto; padding: 0; border: 0; background: none; }
+/* "Remind me" (plan L48 R3): the shared kit's bell beside the link. */
+.fu-remind { display: inline-flex; align-items: center; gap: 5px; font-weight: 600; }
+.fu-remind .ovk-i { width: 1.05em; height: 1.05em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .fu-quest-title, .fu-plan-title, .fu-place-body b, .fu-event-body b, .fu-option-body b { font-size: 1.04rem; font-weight: 800; line-height: 1.3; overflow-wrap: anywhere; }
 .fu-quest-meta, .fu-quest-foot, .fu-plan-meta, .fu-plan-foot, .fu-place-addr, .fu-place-type, .fu-event-meta, .fu-event-type, .fu-option-meta, .fu-hours { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: .82rem; color: var(--text-muted, #7386a3); }
 .fu-quest-detail, .fu-plan-detail, .fu-quest-body, .fu-place-body, .fu-event-body, .fu-option-body { display: grid; gap: 4px; min-width: 0; color: var(--text-secondary, #96a7c2); line-height: 1.5; }
