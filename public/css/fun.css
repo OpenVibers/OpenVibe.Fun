@@ -124,6 +124,9 @@ html[data-ov-motion=reduced] .fu-pin, html[data-ov-motion=reduced] .fu-flip-card
 /* Real things first (10-31): the guide's call to action, and one short "be the first" row for what has no entries yet. */
 .fu-cta { display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: 999px; background: var(--room-strong, var(--room-accent)); color: var(--room-on, #fff); font-weight: 700; text-decoration: none; }
 .fu-cta:focus-visible { outline: 2px solid var(--room-accent); outline-offset: 3px; }
+/* A page's link colour (the room's accent) outranks .fu-cta and painted its words pink on its pink: doubled, the button
+   keeps the room's on-colour (openvibe.fun's "Find something near me" was an empty pill, 2026-11-01). */
+.fu-cta.fu-cta, .fu-cta.fu-cta:hover { color: var(--room-on, #fff); text-decoration: none; }
 .fu-first-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 10px; }
 .fu-first-list li { display: grid; gap: 4px; padding: 14px 16px; border-radius: 16px; border: 1px dashed color-mix(in srgb, var(--room-accent) 45%, var(--border, #2c3d5c)); }
 .fu-first-list span { color: var(--text-secondary, #a8b3c4); font-size: 14px; line-height: 1.45; }
