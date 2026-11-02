@@ -67,13 +67,12 @@ function cityMotif() {
 </div>`;
 }
 
-function home({ counts = {}, featured = [], plans = [], now = Date.now(), base = '' } = {}) {
+function home({ counts = {}, featured = [], plans = [], now = Date.now(), base = '', events = false, coins = false } = {}) {
     // Real things first (owner, 10-31: empty sections made the rooms look unfinished). The local guide always has
     // something; quests and plans lead once there are some, and until then share one short "be the first" row below.
     const guide = `<section class="fu-section" id="fu-guide-teaser" aria-labelledby="fu-guide-teaser-h">
 <div class="fu-head-row"><h2 id="fu-guide-teaser-h">What's fun near me?</h2><a class="fu-more" href="/guide">The local guide</a></div>
-<p class="fu-lede">A city, a rainy afternoon or a cheap date: places from OpenStreetMap, local events from Ticketmaster when a key is configured, and a map link for every answer. No model call, no paid provider.</p>
-<p><a class="fu-cta" href="/guide">Find something near me</a></p>
+<p class="fu-lede">A city, a rainy afternoon or a cheap date: places from OpenStreetMap${events ? ', local events from Ticketmaster' : ''} and a map link for every answer. No model call, no paid provider.</p>
 </section>`;
     const questsSec = featured.length ? `<section class="fu-section" id="fu-featured" aria-labelledby="fu-featured-h">
 <div class="fu-head-row"><h2 id="fu-featured-h">IRL quests on Live</h2><a class="fu-more" href="/quests">All quests</a></div>
@@ -109,7 +108,7 @@ function home({ counts = {}, featured = [], plans = [], now = Date.now(), base =
             { title: 'A place becomes a plan', text: 'The guide shows what is open, what is free and what is step-free. One press turns a place into a group plan; the group votes and the winner goes to Today.',
                 html: `<div class="fu-demo-plan"><span class="fu-pin fu-pin-static">a mural</span><span class="fu-arrow">→</span><span class="fu-status fu-status-decided">Decided</span><b>Saturday, 19:00</b></div>`,
                 action: { href: '/guide', label: 'Ask the guide' } },
-            { title: 'Verified, then paid', text: 'After the stream the quest is completed, verified by a moderator or enough chat checks, and the badge is paid. OpenCoins are loyalty points, never money, and only when the wallet is configured.',
+            { title: coins ? 'Verified, then paid' : 'Verified, then awarded', text: `After the stream the quest is completed, verified by a moderator or enough chat checks, and the badge is awarded${coins ? ' with OpenCoins: loyalty points, never money' : ''}.`,
                 html: `<div class="fu-demo-verified"><span class="fu-status fu-status-verified">Verified</span><span class="fu-badge">IRL quest badge</span></div>`,
                 action: { href: '/quests', label: 'See the quests' } },
         ],
@@ -117,7 +116,7 @@ function home({ counts = {}, featured = [], plans = [], now = Date.now(), base =
             ['Is this a social network?', 'No. Fun never posts to Chat or Live. It reads their public pages, and the only write to another service is a plan added to your own Today with your own Network token.'],
             ['Where does the guide get its places?', 'OpenStreetMap through Nominatim and Overpass, within both usage policies: a contact User-Agent, one request a second per host, a bounded around: query, and a seven-day cache. Every answer credits OSM (ODbL).'],
             ['Can a quest be dangerous?', 'No. Every suggestion is checked against a small dangerous/illegal/trespassing/harassment filter before it is stored, the streamer sets the limits, and any public quest can be reported to staff.'],
-            ['What is paid on completion?', 'A free local badge, always. OpenCoins are loyalty points, never money; they are credited only when FUN_COINS is on and the Network grant exists, with per-person and network-wide daily caps.'],
+            ['What do you get for completing one?', coins ? 'A free local badge, always, and OpenCoins: loyalty points, never money, with a daily cap per person.' : 'A free local badge. Nothing here is money.'],
         ] },
     });
     const at = room.indexOf('<section class="sc-room-scenes"');
@@ -156,11 +155,11 @@ ${e.segment || e.genre ? `<p class="fu-event-type">${esc([e.segment, e.genre].fi
 <div class="fu-event-links">${e.url ? `<a href="${esc(safeHttp(e.url))}" rel="nofollow noopener">Tickets and details</a> · ` : ''}${e.map_url ? `<a href="${esc(e.map_url)}" rel="nofollow noopener">Map</a>` : ''}</div></div></li>`;
 }
 
-function guide({ values = {}, result = null, error = null } = {}) {
+function guide({ values = {}, result = null, error = null, events = false } = {}) {
     const v = { q: '', kind: 'all', radius: '', accessible: false, rainy: false, kids: false, cheap: false, ...values };
     return `<div class="fu-wrap fu-guide-page" id="fu-guide">
 <header class="fu-page-h"><p class="fu-kicker">The local guide</p><h1>What's fun near me?</h1>
-<p class="fu-lede">A town, a rainy afternoon, a cheap date or a playground. The guide reads OpenStreetMap for places and Ticketmaster for events only when a key is configured. It is deterministic: no model call and no paid provider.</p></header>
+<p class="fu-lede">A town, a rainy afternoon, a cheap date or a playground. The guide reads OpenStreetMap for places${events ? ' and Ticketmaster for events' : ''}. It is deterministic: no model call and no paid provider.</p></header>
 <form id="fu-guide-form" class="fu-form fu-card" method="get" action="/guide">
 <label class="fu-field"><span>Where?</span><input name="q" type="text" maxlength="200" value="${esc(v.q)}" placeholder="Portland, Oregon" required></label>
 <label class="fu-field"><span>What kind?</span><select name="kind">${Object.entries(KIND_LABEL).map(([k, l]) => `<option value="${esc(k)}"${v.kind === k ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
@@ -174,10 +173,10 @@ ${result ? `<section class="fu-section" id="fu-guide-results" aria-labelledby="f
 <div class="fu-head-row"><h2 id="fu-guide-results-h">${esc(result.location.display_name || result.location.name || 'Near you')}</h2><span class="fu-count">${result.results.length} ${result.results.length === 1 ? 'place' : 'places'}${result.cached ? ' · cached' : ''}</span></div>
 ${miniMap(result.results)}
 ${result.results.length ? `<ol class="fu-places" id="fu-guide-places">${result.results.map(placeCard).join('')}</ol>` : empty('Nothing matched those filters in this radius. Try a wider radius or another kind.', '/guide', 'Change the filters')}
-<section class="fu-events-sec" id="fu-guide-events" aria-labelledby="fu-guide-events-h"><h2 id="fu-guide-events-h">Events</h2>
-${result.events_configured ? (result.events.length ? `<ol class="fu-events">${result.events.map(eventCard).join('')}</ol>` : '<p class="fu-muted">Ticketmaster is configured but has no events in this radius in the next 30 days.</p>') : '<p class="fu-muted">Ticketmaster is not configured. The guide uses OpenStreetMap only; set <code>TICKETMASTER_API_KEY</code> to add events.</p>'}
+${result.events_configured ? `<section class="fu-events-sec" id="fu-guide-events" aria-labelledby="fu-guide-events-h"><h2 id="fu-guide-events-h">Events</h2>
+${result.events.length ? `<ol class="fu-events">${result.events.map(eventCard).join('')}</ol>` : '<p class="fu-muted">No events in this radius in the next 30 days.</p>'}
 ${result.events_error ? `<p class="fu-fine">Event source unavailable just now: ${esc(result.events_error)}</p>` : ''}
-</section>
+</section>` : ''}
 <p class="fu-fine">© OpenStreetMap contributors · ODbL 1.0. ${result.events_configured ? 'Event data from Ticketmaster Discovery.' : ''}</p>
 </section>` : ''}
 </div>`;
@@ -257,7 +256,7 @@ ${q.place_name ? `<p class="fu-muted">Place: ${esc(q.place_name)}${q.city ? `, $
 ${flash ? `<p class="fu-note" role="status">${esc(flash)}</p>` : ''}
 ${problem ? `<p class="fu-note is-bad" role="alert">${esc(problem)}</p>` : ''}
 <section class="fu-section" id="fu-quest-actions" aria-labelledby="fu-quest-actions-h"><h2 id="fu-quest-actions-h">Take part</h2>
-${q.status === 'verified' ? `<p class="fu-note" role="status">Verified. ${q.reward_badge ? 'The badge is paid.' : ''} ${Number(q.reward_coins) ? 'OpenCoins are recorded by the wallet when it is configured.' : ''}</p>` : ''}
+${q.status === 'verified' ? `<p class="fu-note" role="status">Verified.${q.reward_badge ? ' The badge is awarded.' : ''}</p>` : ''}
 ${signedIn && q.status !== 'verified' ? `<form method="post" action="/q/${esc(q.slug)}/vote" class="fu-inline"><button class="fu-btn" type="submit"${voted ? ' disabled' : ''}>${voted ? 'You voted' : 'Vote for this quest'}</button></form>` : ''}
 ${!signedIn ? `<p class="fu-muted"><a href="/auth/login?next=${encodeURIComponent(`/q/${q.slug}`)}">Sign in</a> to vote.</p>` : ''}
 ${owner ? `<div class="fu-actions">
@@ -378,7 +377,7 @@ function developers() {
 <header class="fu-page-h"><p class="fu-kicker">Developers</p><h1>The Fun API</h1>
 <p class="fu-lede">JSON under <code>/api/v1</code>, with <code>application/problem+json</code> errors. A person is the <code>fun_at</code> session cookie or a Network user token as a Bearer. No route needs a service token; the one outbound write uses the person's own token.</p></header>
 <section><h2>Local guide</h2><dl class="fu-eps">
-${ep('GET', '/api/v1/guide?q=&kind=&accessible=&rainy=&kids=&cheap=&radius=', 'OSM places with attribution and a map link; Ticketmaster events only when a key is configured.')}
+${ep('GET', '/api/v1/guide?q=&kind=&accessible=&rainy=&kids=&cheap=&radius=', 'OSM places with attribution and a map link; Ticketmaster events when this server has them on (events_configured says so).')}
 </dl></section>
 <section><h2>IRL quests</h2><dl class="fu-eps">
 ${ep('GET', '/api/v1/quests?limit=&cursor=&status=&city=', 'Public IRL quests, newest first.')}
