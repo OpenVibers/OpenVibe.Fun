@@ -26,6 +26,16 @@ function jsonLd(html) {
         const p = await t.get('/api/v1/plans', { as: kim, json: { title: 'Friday with the group', summary: 'Two choices.', city: 'Portland', starts_at: future, timezone: 'UTC', visibility: 'public', options: [{ title: 'Mural walk', accessible: true }, { title: 'Bowling' }] } });
         const plan = p.json();
 
+        await check('each page\'s WebPage name is on the page, in its <title> (the release check\'s JSON-LD rule)', async () => {
+            for (const path of ['/guide', '/quests', '/plans', '/developers']) {
+                const html = (await t.get(path)).text;
+                const title = (/<title>([^<]*)<\/title>/.exec(html) || [])[1] || '';
+                const pages = jsonLd(html).flatMap((x) => [].concat(x['@graph'] || x)).filter((x) => /WebPage/.test(String(x['@type'])));
+                assert.ok(pages.length, `${path} has a WebPage`);
+                for (const w of pages) assert.ok(title.includes(w.name), `${path}: "${w.name}" is in "${title}"`);
+            }
+        });
+
         await check('home: semantic, the featured quests and plans, the guide teaser, public cache with Vary: Cookie', async () => {
             const r = await t.get('/');
             assert.strictEqual(r.status, 200);

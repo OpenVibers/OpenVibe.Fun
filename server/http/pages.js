@@ -92,7 +92,7 @@ function createPageRoutes(ctx) {
             index: true, cache: result ? PUBLIC_CACHE : null, agentLayer: true,
             title: 'The local guide',
             description: 'What\'s fun near me? Places from OpenStreetMap and local events from Ticketmaster when a key is configured, with a map, times and links.',
-            jsonLd: [seo.jsonLd.webPage({ name: 'The OpenVibe.Fun local guide', url: `${base()}/guide`, description: 'Places from OpenStreetMap, local events when Ticketmaster is configured.', siteUrl: base() })],
+            jsonLd: [seo.jsonLd.webPage({ name: 'The local guide', url: `${base()}/guide`, description: 'Places from OpenStreetMap, local events when Ticketmaster is configured.', siteUrl: base() })],
             body: raw(views.guide({ values, result, error: problem })),
         }, status);
     });
@@ -104,7 +104,7 @@ function createPageRoutes(ctx) {
             index: true, cache: PUBLIC_CACHE, agentLayer: true,
             title: 'IRL quests on Live',
             description: 'Viewers suggest, chat votes, the streamer accepts and a moderator or the chat verifies. Safe, accessible challenges for the real world.',
-            jsonLd: [seo.jsonLd.webPage({ name: 'IRL quests on OpenVibe.Live', url: `${base()}/quests`, description: 'Safe IRL challenges for streamers and their chat.', siteUrl: base() })],
+            jsonLd: [seo.jsonLd.webPage({ name: 'IRL quests on Live', url: `${base()}/quests`, description: 'Safe IRL challenges for streamers and their chat.', siteUrl: base() })],
             body: raw(views.quests({ quests: out.quests, ideas: ideas.IDEAS })),
         });
     });
@@ -255,7 +255,7 @@ function createPageRoutes(ctx) {
             index: true, cache: PUBLIC_CACHE, agentLayer: true,
             title: 'Group plans',
             description: 'Two or three options, one link, one vote each. The group picks the plan and the winner can go to Today.',
-            jsonLd: [seo.jsonLd.webPage({ name: 'Group plans on OpenVibe.Fun', url: `${base()}/plans`, description: 'Decide a plan together and send the winner to Today.', siteUrl: base() })],
+            jsonLd: [seo.jsonLd.webPage({ name: 'Group plans', url: `${base()}/plans`, description: 'Decide a plan together and send the winner to Today.', siteUrl: base() })],
             body: raw(views.plans({ plans: out.plans, now: s.now(), base: base() })),
         });
     });
