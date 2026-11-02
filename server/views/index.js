@@ -20,6 +20,7 @@
  */
 const { esc } = require('../render/html');
 const sc = require('openvibe-shared/showcase');
+const { remindLink } = require('./remind');
 
 const STATUS_LABEL = { suggested: 'Suggested', accepted: 'Accepted', live: 'Live now', completed: 'Completed', verified: 'Verified', rejected: 'Not chosen', hidden: 'Hidden', voting: 'Voting', decided: 'Decided', cancelled: 'Cancelled' };
 const CATEGORY_LABEL = { near_me: 'Near me', outside: 'Outside', brainy: 'Brainy', silly: 'Silly', chill: 'Chill' };
@@ -45,12 +46,16 @@ function questCard(q) {
 </a></li>`;
 }
 
-function planCard(p) {
+function planCard(p, { now = Date.now(), base = '' } = {}) {
+    // "Remind me" for the moment the plan starts (plan L48 R3): a quiet link in the card's own line, only when the
+    // start is still ahead.
+    const remind = remindLink(p, { now, url: base ? `${base}/plans/${encodeURIComponent(p.slug)}` : '' });
     return `<li class="fu-plan-card" data-plan="${esc(p.slug)}">
 <a class="fu-plan-link" href="/plans/${esc(p.slug)}">
 <span class="fu-plan-title">${esc(p.title)}</span>
-<span class="fu-plan-meta">${statusBadge(p.status)} · ${when(p.starts_at)}${p.city ? ` · ${esc(p.city)}` : ''}</span>
-</a></li>`;
+</a>
+<span class="fu-plan-meta">${statusBadge(p.status)} · ${when(p.starts_at)}${p.city ? ` · ${esc(p.city)}` : ''}${remind ? ` · ${remind}` : ''}</span>
+</li>`;
 }
 
 /** The home's picture: a small city block with idea pins and a quest card flipping up. */
@@ -62,19 +67,28 @@ function cityMotif() {
 </div>`;
 }
 
-function home({ counts = {}, featured = [], plans = [] } = {}) {
-    const live = `<section class="fu-section" id="fu-featured" aria-labelledby="fu-featured-h">
-<div class="fu-head-row"><h2 id="fu-featured-h">IRL quests on Live</h2><a class="fu-more" href="/quests">All quests</a></div>
-${featured.length ? `<ol class="fu-quests">${featured.slice(0, 6).map(questCard).join('')}</ol>` : empty('No IRL quest is public yet. A streamer opens a board and chat suggests the first one.', '/live', 'Open a board on Live')}
-</section>
-<section class="fu-section" id="fu-plans" aria-labelledby="fu-plans-h">
-<div class="fu-head-row"><h2 id="fu-plans-h">Plans, decided together</h2><a class="fu-more" href="/plans">All plans</a></div>
-${plans.length ? `<ol class="fu-plans">${plans.slice(0, 4).map(planCard).join('')}</ol>` : empty('No group plan is public yet. Start one and send the link to the group.', '/plans/new', 'Start a plan')}
-</section>
-<section class="fu-section" id="fu-guide-teaser" aria-labelledby="fu-guide-teaser-h">
+function home({ counts = {}, featured = [], plans = [], now = Date.now(), base = '' } = {}) {
+    // Real things first (owner, 10-31: empty sections made the rooms look unfinished). The local guide always has
+    // something; quests and plans lead once there are some, and until then share one short "be the first" row below.
+    const guide = `<section class="fu-section" id="fu-guide-teaser" aria-labelledby="fu-guide-teaser-h">
 <div class="fu-head-row"><h2 id="fu-guide-teaser-h">What's fun near me?</h2><a class="fu-more" href="/guide">The local guide</a></div>
 <p class="fu-lede">A city, a rainy afternoon or a cheap date: places from OpenStreetMap, local events from Ticketmaster when a key is configured, and a map link for every answer. No model call, no paid provider.</p>
+<p><a class="fu-cta" href="/guide">Find something near me</a></p>
 </section>`;
+    const questsSec = featured.length ? `<section class="fu-section" id="fu-featured" aria-labelledby="fu-featured-h">
+<div class="fu-head-row"><h2 id="fu-featured-h">IRL quests on Live</h2><a class="fu-more" href="/quests">All quests</a></div>
+<ol class="fu-quests">${featured.slice(0, 6).map(questCard).join('')}</ol>
+</section>` : '';
+    const plansSec = plans.length ? `<section class="fu-section" id="fu-plans" aria-labelledby="fu-plans-h">
+<div class="fu-head-row"><h2 id="fu-plans-h">Plans, decided together</h2><a class="fu-more" href="/plans">All plans</a></div>
+<ol class="fu-plans">${plans.slice(0, 4).map((p) => planCard(p, { now, base })).join('')}</ol>
+</section>` : '';
+    const first = [
+        !featured.length ? `<li><b>IRL quests on Live</b><span>A streamer opens a board and chat suggests the first one.</span><a href="/live">Open a board</a></li>` : '',
+        !plans.length ? `<li><b>Plans, decided together</b><span>Start one and send the link to the group; the vote picks.</span><a href="/plans/new">Start a plan</a></li>` : '',
+    ].filter(Boolean).join('');
+    const beFirst = first ? `<section class="fu-section fu-first" aria-labelledby="fu-first-h"><h2 id="fu-first-h">Be the first</h2><ul class="fu-first-list">${first}</ul></section>` : '';
+    const live = `${questsSec}${plansSec}${guide}${beFirst}`;
     const room = sc.room({
         room: 'fun',
         hero: {
@@ -151,7 +165,7 @@ function guide({ values = {}, result = null, error = null } = {}) {
 <label class="fu-field"><span>Where?</span><input name="q" type="text" maxlength="200" value="${esc(v.q)}" placeholder="Portland, Oregon" required></label>
 <label class="fu-field"><span>What kind?</span><select name="kind">${Object.entries(KIND_LABEL).map(([k, l]) => `<option value="${esc(k)}"${v.kind === k ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
 <label class="fu-field"><span>How far? (km)</span><input name="radius" type="number" min="1" max="50" step="1" value="${esc(v.radius)}" placeholder="5"></label>
-<div class="fu-checks"><label><input type="checkbox" name="accessible" value="1"${v.accessible ? ' checked' : ''}> Step-free only</label><label><input type="checkbox" name="rainy" value="1"${v.rainy ? ' checked' : ''}> Rainy day (inside)</label><label><input type="checkbox" name="kids" value="1"${v.kids ? ' checked' : ''}> With kids</label><label><input type="checkbox" name="cheap" value="1"${v.cheap ? ' checked' : ''}> Free only</label></div>
+<div class="fu-checks" role="group" aria-labelledby="fu-narrow"><span class="fu-checks-label" id="fu-narrow">Narrow it down</span><label><input type="checkbox" name="accessible" value="1"${v.accessible ? ' checked' : ''}> Step-free only</label><label><input type="checkbox" name="rainy" value="1"${v.rainy ? ' checked' : ''}> Rainy day (inside)</label><label><input type="checkbox" name="kids" value="1"${v.kids ? ' checked' : ''}> With kids</label><label><input type="checkbox" name="cheap" value="1"${v.cheap ? ' checked' : ''}> Free only</label></div>
 <div class="fu-actions"><button class="fu-btn" type="submit">Find something</button></div>
 <p class="fu-fine">Places © OpenStreetMap contributors, ODbL. Cached for seven days; one request a second to each OSM host.</p>
 </form>
@@ -308,17 +322,20 @@ ${opts.map((o, i) => `<label class="fu-field"><span>Option ${i + 1}${i === 0 ? '
 </form></div>`;
 }
 
-function plans({ plans: list = [] } = {}) {
+function plans({ plans: list = [], now = Date.now(), base = '' } = {}) {
     return `<div class="fu-wrap" id="fu-plans">
 <header class="fu-page-h"><p class="fu-kicker">Group plans</p><h1>Decide it together</h1>
 <p class="fu-lede">Two or three options, one link, one vote each. The winner is chosen by the group and can go to Today. A plan with votes from public chat shows the matching command.</p>
 <div class="fu-actions"><a class="fu-btn" href="/plans/new">Start a plan</a><a class="fu-btn fu-btn-quiet" href="/guide">Find a place</a></div></header>
-${list.length ? `<ol class="fu-plans" id="fu-public-plans">${list.map(planCard).join('')}</ol>` : empty('No public plan yet. Start one and share the link with the group.', '/plans/new', 'Start a plan')}
+${list.length ? `<ol class="fu-plans" id="fu-public-plans">${list.map((p) => planCard(p, { now, base })).join('')}</ol>` : empty('No public plan yet. Start one and share the link with the group.', '/plans/new', 'Start a plan')}
 </div>`;
 }
 
-function plan({ p, options = [], winner = null, signedIn = false, mine = false, staff = false, flash = null, problem = null, myOptionId = null, totalVotes = 0 } = {}) {
+function plan({ p, options = [], winner = null, signedIn = false, mine = false, staff = false, flash = null, problem = null, myOptionId = null, totalVotes = 0, now = Date.now(), base = '' } = {}) {
     const owner = mine || staff;
+    // "Remind me" for the moment the plan starts (plan L48 R3), beside the page's own actions; only when the start
+    // is still ahead.
+    const remind = remindLink(p, { now, url: base ? `${base}/plans/${encodeURIComponent(p.slug)}` : '', action: true });
     return `<div class="fu-wrap" id="fu-plan" data-plan="${esc(p.slug)}">
 <article class="fu-plan-detail">
 <header class="fu-page-h"><p class="fu-kicker">${statusBadge(p.status)} · ${p.visibility === 'public' ? 'public' : p.visibility === 'unlisted' ? 'share link' : 'private'}</p><h1>${esc(p.title)}</h1>
@@ -351,7 +368,7 @@ ${signedIn ? `<details class="fu-report"><summary>Report this plan</summary><for
 <button class="fu-btn fu-btn-quiet" type="submit">Send the report</button></form></details>` : `<p class="fu-muted"><a href="/auth/login?next=${encodeURIComponent(`/plans/${p.slug}`)}">Sign in</a> to report.</p>`}
 ${staff ? `<form method="post" action="/plans/${esc(p.slug)}/hide" class="fu-inline"><button class="fu-btn fu-btn-quiet" type="submit">Hide (staff)</button></form>` : ''}
 </section>
-<footer class="fu-plan-foot"><a class="fu-btn fu-btn-quiet" href="/plans">All plans</a><span class="fu-fine">Share link: ${esc(p.slug)}</span></footer>
+<footer class="fu-plan-foot"><a class="fu-btn fu-btn-quiet" href="/plans">All plans</a>${remind}<span class="fu-fine">Share link: ${esc(p.slug)}</span></footer>
 </article></div>`;
 }
 
