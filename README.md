@@ -50,8 +50,9 @@ external write is a plan added to *your own* Today.
 - **Identity and roles** — OpenVibe.Network. Fun is OAuth client `fun` (PKCE S256) and verifies session tokens
   against the Network JWKS; staff means Network role `global_mod` or above.
 - **OpenStreetMap and Ticketmaster** — external public sources, cached and credited; never a paid provider.
-- **Search** — OpenVibe.Search receives `search.index-document@1` documents from `fun_outbox` when its writer is
-  configured; the relay needs `search.document.write` and is not in v1.
+- **Search** — OpenVibe.Search receives `search.index-document@1` documents from `fun_outbox`:
+  `openvibe-publishing/search-relay` delivers them to its owner API with Fun's `search.document.write` grant
+  (`FUN_SEARCH_URL`; unset, they wait).
 - **Events, the host and the database** — OpenVibe.Events, OpenVibe.Host.
 
 ## Capabilities and grants
@@ -70,8 +71,8 @@ cookie or a Network user token; a signed-in write from the cookie must come from
   to credit OpenCoins through OpenVibe.Network after a quest is verified. Off by default; the badge is still paid.
 
 **Not needed in v1:** no Live, Chat, Today, Quest, Media or AI service token. The Today write uses the signed-in
-person's own Network token, and the guide reads public OSM/Ticketmaster endpoints. A future Search relay needs
-`search.document.write`; a future streamer-ownership proof could use a Live capability, but v1 checks the Network
+person's own Network token, and the guide reads public OSM/Ticketmaster endpoints. The Search relay uses
+`search.document.write` (held); a future streamer-ownership proof could use a Live capability, but v1 checks the Network
 username against the public Live channel.
 
 ## API

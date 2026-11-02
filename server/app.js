@@ -35,6 +35,7 @@ const { raw } = require('./render/html');
 const accountDataLib = require('./identity/account-data');
 const { createStore } = require('./store');
 const { createSearchIndex } = require('./search');
+const { createSearchRelay } = require('openvibe-publishing/search-relay');
 const { createUpstreams } = require('./upstreams');
 const { createGuide } = require('./guide');
 const { createUpstreams: createGuideUpstreams } = require('./guide/upstream');
@@ -61,7 +62,16 @@ async function createApp(opts = {}) {
     const sso = createSso({ config, keys, fetchImpl, now: s.now, log });
     const principal = createPrincipal({ config, keys });
 
-    const search = createSearchIndex({ config, s });
+    // The queued Search documents (fun_outbox) go to OpenVibe.Search's owner API with this service's token; off
+    // without FUN_SEARCH_URL or the client secret. Started by server/index.js, never under FUN_DRILL.
+    const searchRelay = createSearchRelay({
+        db: s.db, table: 'fun_outbox', owner: 'fun', searchUrl: config.search.url, fetchImpl, now: s.now, log,
+        auth: config.search.url && config.oauth.clientSecret ? contracts.serviceAuth.createTokenClient({
+            tokenUrl: `${config.networkInternalUrl}/oauth/token`, clientId: config.oauth.clientId, clientSecret: config.oauth.clientSecret,
+            audience: 'openvibe.search', scope: 'search.document.write', fetchImpl,
+        }) : null,
+    });
+    const search = createSearchIndex({ config, s, onQueued: () => searchRelay.kick() });
     const store = createStore(s, { search, config });
     const upstreams = createUpstreams({ config, fetchImpl, now: s.now, log });
     const guideUpstream = createGuideUpstreams({ config, s, fetchImpl, now: s.now, log });
@@ -77,7 +87,7 @@ async function createApp(opts = {}) {
         : async () => { throw new Error('OV_OAUTH_CLIENT_SECRET is not set: Fun cannot answer account events'); });
 
     const ctx = {
-        config, s, keys, sso, principal, search, store, upstreams, guide, guideUpstream, coins, chatSync,
+        config, s, keys, sso, principal, search, searchRelay, store, upstreams, guide, guideUpstream, coins, chatSync,
         accountData, accountSend, log,
     };
 

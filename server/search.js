@@ -4,8 +4,9 @@
  * OpenVibe.Fun's Search Fabric feed. A public IRL quest is one `search.index-document@1` (owner `fun`, type `quest`,
  * page `/q/<slug>`); a public group plan is another (type `plan`, page `/plans/<slug>`). They are queued in
  * `fun_outbox` in the same transaction as the change; hiding or cancelling one queues a tombstone, which wins over
- * any older revision. The relay is deliberately not part of v1: rows wait until OpenVibe.Search's document writer
- * is configured for `fun` (it needs the search.document.write grant).
+ * any older revision. openvibe-publishing/search-relay (server/app.js) delivers them to Search's owner API with
+ * this service's token (search.document.write), a few seconds after each change and every minute; without
+ * FUN_SEARCH_URL they wait.
  *
  * A quest/plan body is the public text the person wrote plus the public facts around it. No voter, subject, chat
  * author or token is ever part of a document.
@@ -107,7 +108,7 @@ function planDocument(p, options = [], { baseUrl = 'https://openvibe.fun' } = {}
     };
 }
 
-function createSearchIndex({ config, s, baseUrl = config.baseUrl }) {
+function createSearchIndex({ config, s, baseUrl = config.baseUrl, onQueued = null }) {
     const nowIso = () => new Date(s.now()).toISOString();
     const base = String(baseUrl).replace(/\/+$/, '');
 
@@ -119,6 +120,7 @@ function createSearchIndex({ config, s, baseUrl = config.baseUrl }) {
              VALUES ($1, $2, $3::jsonb, $4::timestamptz, $4::timestamptz)`,
             [eventId, topic, JSON.stringify(payload), nowIso()],
         );
+        if (onQueued) onQueued();
         return eventId;
     }
 

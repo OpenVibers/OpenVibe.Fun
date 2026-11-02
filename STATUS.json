@@ -27,7 +27,7 @@
     "A deterministic local guide from Nominatim/Overpass with a contact User-Agent, a per-host pacer, a seven-day cache, stale fallback and ODbL attribution",
     "Ticketmaster Discovery events only when TICKETMASTER_API_KEY is set; the key is never cached, returned or logged",
     "Group plans with options, one vote per person, a tie refused, an owner/staff decision and a winner added to the viewer's own Today via the person's token",
-    "Search Fabric documents (owner fun; types quest and plan) in fun_outbox, with valid tombstones on hide/cancel",
+    "Search Fabric documents (owner fun; types quest and plan) in fun_outbox, with valid tombstones on hide/cancel, delivered to Search's owner API by openvibe-publishing/search-relay",
     "Sign-in with OpenVibe.Network (PKCE S256, fun_at/fun_rt/fun_oauth), staff role global_mod+",
     "Account export and deletion: personal rows erased; public quests/boards and shared plans anonymized, never silently kept with a name",
     "Server-rendered pages with stable fu- ids/classes, a no-JS OBS overlay, discovery artifacts and deploy files"
@@ -36,7 +36,6 @@
     "An AI chat or model-generated guide: v1 is deterministic and adds no AI capability",
     "Ticketmaster events without a key: v1 is OSM-only by default",
     "OpenCoins without the FUN_COINS=on setting and the identity.subject.resolve + network.coins.credit grants: the badge is still paid",
-    "The Search document relay: documents wait in fun_outbox until Network grants fun search.document.write",
     "A service-token proof of Live channel ownership: v1 checks the public channel and matching Network username",
     "Fan-out of a decided group plan to every member's Today: each viewer adds it to their own with their own token",
     "Parsing OSM opening_hours into open-now; the guide shows the raw OSM value",

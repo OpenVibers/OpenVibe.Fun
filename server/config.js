@@ -62,6 +62,10 @@ function load(env = process.env) {
             scope: env.FUN_EVENTS_SCOPE || 'events.subscription.manage',
         },
 
+        // OpenVibe.Search's owner API: the documents queued in fun_outbox are delivered there (server/app.js,
+        // openvibe-publishing/search-relay) with this service's token (search.document.write). Unset: they wait.
+        search: { url: trim(env.FUN_SEARCH_URL || '') },
+
         // The public APIs Fun reads: Live's channel status, Chat's public history (chat votes are read, never
         // posted), and Today's public event API (called with the viewer's own Network token, never a service one).
         upstreams: {
