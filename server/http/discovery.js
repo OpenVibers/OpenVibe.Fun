@@ -54,7 +54,8 @@ function createDiscoveryRoutes(ctx) {
         res.type('text/plain').set('Cache-Control', TEXT).send(
             '# openvibe.fun: the public quests, plans and guide are for search engines; sign-in, the API, boards,\n'
             + '# private plans and the overlay are not.\n'
-            + seo.robotsTxt({ sitemaps: [abs('/sitemap.xml')], disallow: DISALLOW }));
+            + seo.robotsTxt({ sitemaps: [abs('/sitemap.xml')], disallow: DISALLOW })
+            + `# Agent manifest: ${abs('/.well-known/agent.json')}\n`);
     });
 
     r.get('/llms.txt', (_req, res) => {

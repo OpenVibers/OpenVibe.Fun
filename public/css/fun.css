@@ -36,6 +36,20 @@ html, body { margin: 0; background: var(--bg-primary, #0a0f1c); color: var(--tex
 
 .fu-card { padding: 18px; border-radius: 18px; background: var(--bg-card, #0f1729); border: 1px solid var(--border, #1f2d47); }
 .fu-form { display: grid; gap: 14px; }
+/* Toggles: a checkbox in a pill, the whole pill its target; a checked one fills with the room's colour (the guide's
+   four filters wrapped mid-row as bare browser checkboxes; domain sweep, 2026-11-01). */
+.fu-checks { display: flex; flex-wrap: wrap; gap: 8px; }
+.fu-checks-label { flex-basis: 100%; font-size: .82rem; font-weight: 700; color: var(--text-secondary, #96a7c2); }
+.fu-checks > label, .fu-check { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px 0 11px; border-radius: 999px;
+    border: 1px solid var(--border, #1f2d47); background: color-mix(in srgb, var(--text-primary, #fff) 4%, transparent); color: var(--text-secondary, #96a7c2);
+    font-size: .9rem; font-weight: 600; line-height: 1.2; cursor: pointer; user-select: none;
+    transition: border-color var(--ov-dur-1, .12s) var(--ov-ease-out, ease), background var(--ov-dur-1, .12s) var(--ov-ease-out, ease), color var(--ov-dur-1, .12s) var(--ov-ease-out, ease); }
+.fu-check { justify-self: start; }
+.fu-checks input, .fu-check input { flex: none; width: 18px; height: 18px; margin: 0; accent-color: var(--room-accent); }
+.fu-checks > label:hover, .fu-check:hover { border-color: var(--room-accent); color: var(--text-primary, #e6edf7); }
+.fu-checks > label:has(input:checked), .fu-check:has(input:checked) { border-color: var(--room-accent); background: color-mix(in srgb, var(--room-accent) 16%, transparent); color: var(--text-primary, #e6edf7); }
+.fu-checks > label:has(input:focus-visible), .fu-check:has(input:focus-visible) { outline: 2px solid var(--room-accent); outline-offset: 2px; }
+@media (pointer: coarse) { .fu-checks > label, .fu-check { min-height: 44px; } }
 .fu-field { display: grid; gap: 6px; font-size: .82rem; font-weight: 700; color: var(--text-secondary, #96a7c2); min-width: 0; }
 .fu-field input, .fu-field select, .fu-field textarea { width: 100%; min-height: 42px; padding: 9px 12px; border-radius: 12px; border: 1px solid var(--border, #1f2d47); background: var(--bg-input, var(--bg-primary, #0a0f1c)); color: var(--text-primary, #e6edf7); font: inherit; font-size: .95rem; font-weight: 500; }
 .fu-field input:focus, .fu-field select:focus, .fu-field textarea:focus { outline: 2px solid var(--room-accent); outline-offset: 1px; border-color: transparent; }
@@ -86,6 +100,14 @@ html.ov-motion .fu-flip-card { animation: fu-flip .8s cubic-bezier(.2,.7,.2,1) .
 .fu-quest-link:hover, .fu-plan-link:hover { border-color: color-mix(in srgb, var(--room-accent) 55%, var(--border, #1f2d47)); transform: translateY(-1px); }
 .fu-quest-link, .fu-plan-link { transition: border-color .15s, transform .15s; }
 .fu-quest-card, .fu-plan-card { display: grid; }
+/* The plan card carries its own box now: the title is the link, and the line under it holds the time and the
+   "Remind me" link (plan L48 R3). */
+.fu-plan-card { gap: 6px; align-content: start; height: 100%; padding: 15px 16px; border-radius: 16px; background: var(--bg-card, #0f1729); border: 1px solid var(--border, #1f2d47); transition: border-color .15s, transform .15s; }
+.fu-plan-card:hover { border-color: color-mix(in srgb, var(--room-accent) 55%, var(--border, #1f2d47)); transform: translateY(-1px); }
+.fu-plan-card .fu-plan-link { display: block; height: auto; padding: 0; border: 0; background: none; }
+/* "Remind me" (plan L48 R3): the shared kit's bell beside the link. */
+.fu-remind { display: inline-flex; align-items: center; gap: 5px; font-weight: 600; }
+.fu-remind .ovk-i { width: 1.05em; height: 1.05em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .fu-quest-title, .fu-plan-title, .fu-place-body b, .fu-event-body b, .fu-option-body b { font-size: 1.04rem; font-weight: 800; line-height: 1.3; overflow-wrap: anywhere; }
 .fu-quest-meta, .fu-quest-foot, .fu-plan-meta, .fu-plan-foot, .fu-place-addr, .fu-place-type, .fu-event-meta, .fu-event-type, .fu-option-meta, .fu-hours { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: .82rem; color: var(--text-muted, #7386a3); }
 .fu-quest-detail, .fu-plan-detail, .fu-quest-body, .fu-place-body, .fu-event-body, .fu-option-body { display: grid; gap: 4px; min-width: 0; color: var(--text-secondary, #96a7c2); line-height: 1.5; }
@@ -112,3 +134,29 @@ html.ov-motion .fu-flip-card { animation: fu-flip .8s cubic-bezier(.2,.7,.2,1) .
 @media (max-width: 759px) { .sc-room-pic .fu-pin, .sc-room-pic .fu-flip-card { display: none; } }
 @media (prefers-reduced-motion: reduce) { .fu-pin, .fu-flip-card { animation: none !important; } }
 html[data-ov-motion=reduced] .fu-pin, html[data-ov-motion=reduced] .fu-flip-card { animation: none !important; }
+
+/* Real things first (10-31): the guide's call to action, and one short "be the first" row for what has no entries yet. */
+.fu-cta { display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: 999px; background: var(--room-strong, var(--room-accent)); color: var(--room-on, #fff); font-weight: 700; text-decoration: none; }
+.fu-cta:focus-visible { outline: 2px solid var(--room-accent); outline-offset: 3px; }
+/* A page's link colour (the room's accent) outranks .fu-cta and painted its words pink on its pink: doubled, the button
+   keeps the room's on-colour (openvibe.fun's "Find something near me" was an empty pill, 2026-11-01). */
+.fu-cta.fu-cta, .fu-cta.fu-cta:hover { color: var(--room-on, #fff); text-decoration: none; }
+.fu-first-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 10px; }
+.fu-first-list li { display: grid; gap: 4px; padding: 14px 16px; border-radius: 16px; border: 1px dashed color-mix(in srgb, var(--room-accent) 45%, var(--border, #2c3d5c)); }
+.fu-first-list span { color: var(--text-secondary, #a8b3c4); font-size: 14px; line-height: 1.45; }
+.fu-first-list a { justify-self: start; margin-top: 4px; font-weight: 700; color: var(--room-accent); }
+
+/* Tables on a phone (phone sweep, 2026-11-01): a table of three columns or more whose cells name their column (data-label) shows each row as a card, the first
+   cell its title and every other cell named by its column (html.js gives each cell its data-label). Narrower tables
+   stay tables. Nothing is left out and nothing scrolls sideways. */
+@media (max-width: 640px) {
+    .table-wrap:has(> table thead th:nth-child(3)):has(> table td[data-label]) { overflow: visible; }
+    .table-wrap > table:has(thead th:nth-child(3)):has(td[data-label]) { display: block; }
+    .table-wrap > table:has(thead th:nth-child(3)):has(td[data-label]) thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .table-wrap > table:has(thead th:nth-child(3)):has(td[data-label]) tbody { display: grid; gap: 10px; }
+    .table-wrap > table:has(thead th:nth-child(3)):has(td[data-label]) tr { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid var(--border, #1f2d47); border-radius: 14px; background: var(--bg-card, var(--bg-secondary, #101828)); }
+    .table-wrap > table:has(thead th:nth-child(3)):has(td[data-label]) td { display: block; min-width: 0; padding: 0; border: 0; overflow-wrap: anywhere; }
+    .table-wrap > table:has(thead th:nth-child(3)):has(td[data-label]) td:first-child { font-weight: 700; color: var(--text-primary, #e6edf7); }
+    .table-wrap > table:has(thead th:nth-child(3)):has(td[data-label]) td[data-label]:not(:first-child)::before { content: attr(data-label); display: block; margin-bottom: 2px; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-muted, #7386a3); }
+    .table-wrap > table:has(thead th:nth-child(3)):has(td[data-label]) td:empty { display: none; }
+}
