@@ -6,12 +6,11 @@
  *
  * Every write that makes a public quest or plan writes its Search document (or tombstone) in the same transaction
  * (server/search.js). A suggestion is born unlisted and only the streamer (or staff) can accept it; a plan's owner
- * (or staff) decides its winner. No function here stores a token, a person's looks or a private message.
+ * (or staff) decides its winner. No function here stores a token or a private message.
  */
 const crypto = require('crypto');
 const { ids } = require('openvibe-contracts');
 const safety = require('./quests/safety');
-const { cleanSummary } = require('./text/no-looks');
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const USERNAME_RE = /^[A-Za-z0-9_][A-Za-z0-9_.-]{0,63}$/;

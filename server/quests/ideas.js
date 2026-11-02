@@ -3,7 +3,7 @@
 /**
  * The safe starter quests. These are a small catalogue in code, not an AI generation: the only "generation" in v1
  * is choosing one of these for a streamer (POST /quests/:slug/idea), so no model call and no new AI capability is
- * involved. Every one passes server/quests/safety.js, and they are written without describing anyone's looks.
+ * involved. Every one passes server/quests/safety.js.
  */
 const IDEAS = Object.freeze([
     { title: 'Find the oldest bar on this street', brief: 'Ask a local or look at the date over the door; tell chat what you found.', category: 'near_me', accessible: false },

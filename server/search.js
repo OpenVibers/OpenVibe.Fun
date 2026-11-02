@@ -11,7 +11,6 @@
  * author or token is ever part of a document.
  */
 const { ids } = require('openvibe-contracts');
-const { cleanSummary } = require('./text/no-looks');
 
 const OWNER = 'fun';
 const EVENT_UPSERTED = 'fun.index_document.upserted';
@@ -26,7 +25,7 @@ function questDocument(q, { baseUrl = 'https://openvibe.fun' } = {}) {
     if (!q || q.visibility !== 'public' || !QUEST_STATUSES.has(q.status)) return { owner: OWNER, type: 'quest', id: q.id, revision, deleted: true };
     // The curated idea deck is the one place Fun writes public text for a quest; a look-naming summary would
     // become the title. A person's own suggestion is never rewritten here.
-    const summary = q.source === 'idea' ? cleanSummary(q.title, q.brief) : q.brief;
+    const summary = q.brief;
     const body = [
         q.title,
         q.brief,
