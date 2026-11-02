@@ -398,7 +398,7 @@ ${ep('POST', '/api/v1/plans/:slug/options|vote|decide', 'Add an option, cast one
 ${ep('POST', '/api/v1/plans/:slug/today', 'Adds the winner to the caller\'s own OpenVibe.Today with their token and an idempotency key.')}
 ${ep('POST', '/api/v1/plans/:slug/hide', 'Staff.')}
 </dl></section>
-<section id="fu-search"><h2>Search</h2><p class="fu-fine">Each public quest is one <code>search.index-document@1</code> (owner <code>fun</code>, type <code>quest</code>, <code>/q/&lt;slug&gt;</code>); each public plan is type <code>plan</code> (<code>/plans/&lt;slug&gt;</code>). They wait in <code>fun_outbox</code>; hiding or cancelling queues a tombstone. The relay needs the <code>search.document.write</code> grant and is not in v1.</p></section>
+<section id="fu-search"><h2>Search</h2><p class="fu-fine">Each public quest is one <code>search.index-document@1</code> (owner <code>fun</code>, type <code>quest</code>, <code>/q/&lt;slug&gt;</code>); each public plan is type <code>plan</code> (<code>/plans/&lt;slug&gt;</code>). They are queued in <code>fun_outbox</code> and delivered to OpenVibe.Search within a minute; hiding or cancelling queues a tombstone.</p></section>
 </div>`;
 }
 

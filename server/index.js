@@ -21,6 +21,7 @@ function createLifecycle({ server, ctx, exit, signals, timers = [], extra = [] }
             () => ctx.keys.client.stop(),
             () => ctx.chatSync.stop(),
             () => ctx.coins.stop(),
+            () => ctx.searchRelay.stop(),
             async () => { clearInterval(ctx.telemetryTick); if (ctx.retention) await ctx.retention.stop(); if (ctx.telemetry) await ctx.telemetry.stop(); },
             () => ctx.s.close(),
             ...extra,
@@ -48,6 +49,8 @@ async function start() {
     // Jobs. Chat votes are read-only; both refuse to start under FUN_DRILL, where tests call runOnce/retryPending.
     ctx.chatSync.start();
     ctx.coins.start();
+    // Queued Search documents → OpenVibe.Search (a tick a few seconds after boot, then every minute).
+    if (!config.drill) ctx.searchRelay.start();
 
     // The two account topics at OpenVibe.Events: idempotent; off without the URL, the delivery secret and the client
     // secret. The consumer itself is mounted in server/app.js.
