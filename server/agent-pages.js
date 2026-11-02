@@ -24,7 +24,7 @@ function createAgentPages(ctx) {
             index: true, title: null,
             description: 'Something to do, alone, together, or live: IRL quests on OpenVibe.Live, a local guide from OpenStreetMap, and group plans that the group votes on.',
             jsonLd: homeJsonLd(config),
-            body: raw(views.home({ counts, featured, plans: planOut.plans })),
+            body: raw(views.home({ counts, featured, plans: planOut.plans, events: Boolean(config.ticketmaster && config.ticketmaster.enabled), coins: Boolean(config.coins && config.coins.mode === 'on') })),
         });
     }
 
@@ -49,9 +49,9 @@ function createAgentPages(ctx) {
         }
         return page('/guide', {
             index: true, title: 'The local guide',
-            description: 'What\'s fun near me? Places from OpenStreetMap and local events from Ticketmaster when a key is configured, with a map, times and links.',
-            jsonLd: [seo.jsonLd.webPage({ name: 'The local guide', url: `${base()}/guide`, description: 'Places from OpenStreetMap, local events when Ticketmaster is configured.', siteUrl: base() })],
-            body: raw(views.guide({ values, result, error: problem })),
+            description: config.ticketmaster && config.ticketmaster.enabled ? 'What\'s fun near me? Places from OpenStreetMap and events from Ticketmaster, with a map, times and links.' : 'What\'s fun near me? Places from OpenStreetMap, with a map and a link for every one.',
+            jsonLd: [seo.jsonLd.webPage({ name: 'The local guide', url: `${base()}/guide`, description: config.ticketmaster && config.ticketmaster.enabled ? 'Places from OpenStreetMap and local events from Ticketmaster.' : 'Places from OpenStreetMap, with a map link for each.', siteUrl: base() })],
+            body: raw(views.guide({ values, result, error: problem, events: Boolean(config.ticketmaster && config.ticketmaster.enabled) })),
         });
     }
 

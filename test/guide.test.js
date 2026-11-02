@@ -82,7 +82,7 @@ const { createPacer } = require('../server/guide/upstream');
             assert.ok(r.text.includes('© OpenStreetMap'));
             assert.ok(r.text.includes('Riverside Park'));
             assert.ok(r.text.includes('/plans/new?title=City%20Museum'));
-            assert.ok(r.text.includes('Ticketmaster is not configured'));
+            assert.ok(!r.text.includes('fu-guide-events') && !/configured|TICKETMASTER/.test(r.text), 'no events section and no operator words while events are off');
         });
     } finally {
         await t.close();
