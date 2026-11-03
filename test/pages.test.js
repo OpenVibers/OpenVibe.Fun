@@ -140,6 +140,11 @@ function jsonLd(html) {
             const llms = await t.get('/llms.txt');
             assert.strictEqual(llms.status, 200);
             assert.ok(llms.text.includes('OpenVibe.Fun'));
+            // AGT-5: each of Fun's own pages is linked at its Markdown twin, and the secondary links are Optional.
+            assert.match(llms.text, /\]\(https:\/\/openvibe\.fun\/index\.md\)/, 'the home link is its twin');
+            assert.match(llms.text, /\]\(https:\/\/openvibe\.fun\/quests\.md\)/);
+            assert.match(llms.text, /\n## Optional\n/);
+            assert.match(llms.text, /\]\(https:\/\/openvibe\.fun\/llms-full\.txt\)/, 'a file keeps its URL');
             const full = await t.get('/llms-full.txt');
             assert.strictEqual(full.status, 200);
             assert.ok(full.text.includes('Find the best bench with a view'));

@@ -58,9 +58,13 @@ function createDiscoveryRoutes(ctx) {
             + `# Agent manifest: ${abs('/.well-known/agent.json')}\n`);
     });
 
+    // Every one of Fun's own pages is linked at its Markdown twin (AGT-5; openvibe-shared 4.108.0 leaves files, /api/
+    // paths and other sites' links as they are). What an agent may skip for a shorter context is in `optional`, last.
     r.get('/llms.txt', (_req, res) => {
         res.type('text/plain').set('Cache-Control', TEXT).send(seo.llmsTxt({
             name: SITE_NAME,
+            markdown: true,
+            base: site,
             summary: 'OpenVibe.Fun is the room for something to do. IRL quests let a streamer\'s chat suggest safe real-world challenges, vote with !quest vote, and have the completion checked by chat or a moderator; the badge is paid locally and OpenCoins are loyalty points only when configured. The local guide answers "what\'s fun near me" from OpenStreetMap (Nominatim and Overpass, with a contact User-Agent, one request a second per host, a bounded radius and a seven-day cache) and Ticketmaster when a key is configured (off by default). Group plans have options, one vote per person, and a winner that the viewer can add to their own OpenVibe.Today with their own token.',
             details: 'GET /api/v1/guide?q=&kind=&accessible=&rainy=&kids=&cheap= answers with places (ODbL, © OpenStreetMap contributors) and, only when configured, Ticketmaster events. GET /api/v1/quests lists public IRL quests; GET /api/v1/quests/:slug adds votes and checks. GET /api/v1/plans lists public plans; GET /api/v1/plans/:slug adds options and votes. Chat votes are read from the public OpenVibe.Chat history; Fun never posts. No route needs a service token, and the one outbound write to Today uses the signed-in person\'s own token.',
             sections: [
@@ -74,16 +78,17 @@ function createDiscoveryRoutes(ctx) {
                 { title: 'Machine-readable', links: [
                     { title: 'Public quests (JSON)', url: abs('/api/v1/quests') },
                     { title: 'Public plans (JSON)', url: abs('/api/v1/plans') },
-                    { title: 'Sitemap', url: abs('/sitemap.xml') },
-                    { title: 'Full text for language models', url: abs('/llms-full.txt') },
                     { title: 'Release metadata (JSON)', url: abs('/release.json') },
                 ] },
-                { title: 'Elsewhere', links: [
-                    { title: 'OpenVibe.Live', url: 'https://openvibe.live', note: 'the streamer and the chat' },
-                    { title: 'OpenVibe.Chat', url: 'https://openvibe.chat', note: 'where !quest and !plan votes are typed' },
-                    { title: 'OpenVibe.Today', url: 'https://openvibe.today', note: 'the plan goes to your own calendar' },
-                    { title: 'OpenVibe.Network', url: 'https://openvibe.network', note: 'accounts and staff roles' },
-                ] },
+            ],
+            // llmstxt.org's "## Optional": what an agent may skip when it needs a shorter context.
+            optional: [
+                { title: 'Sitemap', url: abs('/sitemap.xml') },
+                { title: 'Full text for language models', url: abs('/llms-full.txt') },
+                { title: 'OpenVibe.Live', url: 'https://openvibe.live', note: 'the streamer and the chat' },
+                { title: 'OpenVibe.Chat', url: 'https://openvibe.chat', note: 'where !quest and !plan votes are typed' },
+                { title: 'OpenVibe.Today', url: 'https://openvibe.today', note: 'the plan goes to your own calendar' },
+                { title: 'OpenVibe.Network', url: 'https://openvibe.network', note: 'accounts and staff roles' },
             ],
         }));
     });
