@@ -32,6 +32,29 @@ function create({ db, log = console } = {}) {
         db,
         service: 'fun',
         tables: TABLES,
+        /**
+         * The sharing rows (design 2026-11-06, step 6) name their owner and members by canonical subject. The item
+         * stays as the community's record with its name removed; its share row and the person's memberships go, and
+         * the read paths fall back to the old column (which stays public/unlisted). Children first.
+         */
+        extraErase: async (t, subjects) => {
+            for (const subject of subjects) {
+                const id = String(subject).replace(/^user:/, '');
+                await t.exec("DELETE FROM share_members WHERE service='fun' AND subject->>'id' = $1", [id]);
+                await t.exec("DELETE FROM share_transfers WHERE service='fun' AND (from_subject->>'id' = $1 OR to_subject->>'id' = $1)", [id]);
+                await t.exec("DELETE FROM share_access_requests WHERE service='fun' AND subject->>'id' = $1", [id]);
+            }
+            for (const subject of subjects) {
+                const id = String(subject).replace(/^user:/, '');
+                const owned = await t.many("SELECT kind, resource_id FROM shares WHERE service='fun' AND owner_subject->>'id' = $1", [id]);
+                for (const row of owned) {
+                    await t.exec("DELETE FROM share_members WHERE service='fun' AND kind=$1 AND resource_id=$2", [row.kind, row.resource_id]);
+                    await t.exec("DELETE FROM share_transfers WHERE service='fun' AND kind=$1 AND resource_id=$2", [row.kind, row.resource_id]);
+                    await t.exec("DELETE FROM share_access_requests WHERE service='fun' AND kind=$1 AND resource_id=$2", [row.kind, row.resource_id]);
+                    await t.exec("DELETE FROM shares WHERE service='fun' AND kind=$1 AND resource_id=$2", [row.kind, row.resource_id]);
+                }
+            }
+        },
         note: 'A verified IRL quest and a shared group plan stay as the community\'s record with your name removed; your votes, checks, badges, rewards and reports are erased.',
         log,
     });

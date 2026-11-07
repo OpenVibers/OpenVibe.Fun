@@ -49,7 +49,7 @@ async function startNetworkStub() {
         try {
             const missing = await uncovered(d.db, {
                 tables: TABLES,
-                exempt: {account_data_events: 'the ledger of requests itself: which export and deletion fun applied'},
+                exempt: {account_data_events: 'the ledger of requests itself: which export and deletion fun applied', share_members: "the SDK's own sharing model: subject is an added person, erased by extraErase", share_access_requests: "the SDK's own sharing model: subject is the person who asked, erased by extraErase"},
             });
             assert.deepStrictEqual(missing, [], `a table with a person column is neither covered nor exempted: ${missing.join(', ')}`);
         } finally { await d.close(); }
