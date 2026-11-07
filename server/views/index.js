@@ -59,11 +59,24 @@ function planCard(p, { now = Date.now(), base = '' } = {}) {
 }
 
 /** The home's picture: a small city block with idea pins and a quest card flipping up. */
-function cityMotif() {
+/** The board scene: the first real public quest and its real votes and streamer, or an honest empty board. */
+function homeBoard(q) {
+    if (!q) return `<div class="fu-demo-board"><span class="fu-status fu-status-suggested">No public quest yet</span><b>Open a board on Live</b><small>Chat suggests the first one and the streamer accepts it.</small><a href="/live">Open a board</a></div>`;
+    const meta = [q.votes == null ? '' : `${Number(q.votes)} ${Number(q.votes) === 1 ? 'vote' : 'votes'}`, q.streamer_username ? `@${esc(q.streamer_username)} on Live` : ''].filter(Boolean).join(' · ');
+    return `<div class="fu-demo-board"><span class="fu-status fu-status-${esc(q.status)}">${esc(STATUS_LABEL[q.status] || q.status)}</span><b>${esc(q.title)}</b>${meta ? `<small>${esc(meta)}</small>` : ''}<a href="/q/${esc(q.slug)}">Open the quest</a></div>`;
+}
+
+/** The plan scene: the first real public plan and its real time and place, or the way to start the first one. */
+function homePlan(p) {
+    if (!p) return `<div class="fu-demo-plan"><span class="fu-status fu-status-voting">No plan yet</span><b>Start one for your group</b><small>Send the link and the vote picks the plan.</small><a href="/plans/new">Start a plan</a></div>`;
+    return `<div class="fu-demo-plan"><span class="fu-pin fu-pin-static">${esc(p.city || 'a place')}</span><span class="fu-arrow">→</span><span class="fu-status fu-status-${esc(p.status)}">${esc(STATUS_LABEL[p.status] || p.status)}</span><b>${esc(p.title)}</b><small>${esc(when(p.starts_at))}</small><a href="/plans/${esc(p.slug)}">Open the plan</a></div>`;
+}
+
+function cityMotif(quest = null) {
     return `<div class="fu-map-motif" aria-hidden="true">
 <svg class="fu-map-lines" viewBox="0 0 420 280" preserveAspectRatio="none"><path d="M0 70 L420 96"/><path d="M0 180 L420 150"/><path d="M70 0 L110 280"/><path d="M250 0 L225 280"/><path d="M340 0 L370 280"/></svg>
 <span class="fu-pin fu-pin-1">a bar</span><span class="fu-pin fu-pin-2">a mural</span><span class="fu-pin fu-pin-3">a bench</span><span class="fu-pin fu-pin-4">a gig</span>
-<span class="fu-flip-card"><small>IRL quest</small><b>Get a stranger to beatbox</b><span>chat is voting</span></span>
+<span class="fu-flip-card"><small>IRL quest</small><b>${esc(quest && quest.title ? quest.title : 'An IRL quest')}</b><span>chat is voting</span></span>
 </div>`;
 }
 
@@ -99,14 +112,14 @@ function home({ counts = {}, featured = [], plans = [], now = Date.now(), base =
                 ...(Number(counts.quests) ? [{ value: Number(counts.quests), label: Number(counts.quests) === 1 ? 'public quest' : 'public quests' }] : []),
                 ...(Number(counts.plans) ? [{ value: Number(counts.plans), label: Number(counts.plans) === 1 ? 'plan' : 'plans' }] : []),
             ] : [],
-            motif: cityMotif(),
+            motif: cityMotif(featured[0]),
         },
         scenes: [
             { title: 'Chat suggests, you accept', text: 'A streamer opens a board for one session. Viewers suggest safe IRL challenges, chat votes with !quest vote, and the streamer accepts the one to do on stream.',
-                html: `<div class="fu-demo-board"><span class="fu-status fu-status-accepted">Accepted</span><b>Find the best bench with a view</b><small>12 votes · @ada on Live</small></div>`,
+                html: homeBoard(featured[0]),
                 action: { href: '/live', label: 'Open a board' } },
             { title: 'A place becomes a plan', text: 'The guide shows what is open, what is free and what is step-free. One press turns a place into a group plan; the group votes and the winner goes to Today.',
-                html: `<div class="fu-demo-plan"><span class="fu-pin fu-pin-static">a mural</span><span class="fu-arrow">→</span><span class="fu-status fu-status-decided">Decided</span><b>Saturday, 19:00</b></div>`,
+                html: homePlan(plans[0]),
                 action: { href: '/guide', label: 'Ask the guide' } },
             { title: coins ? 'Verified, then paid' : 'Verified, then awarded', text: `After the stream the quest is completed, verified by a moderator or enough chat checks, and the badge is awarded${coins ? ' with OpenCoins: loyalty points, never money' : ''}.`,
                 html: `<div class="fu-demo-verified"><span class="fu-status fu-status-verified">Verified</span><span class="fu-badge">IRL quest badge</span></div>`,
@@ -223,7 +236,7 @@ ${flash ? `<p class="fu-note" role="status">${esc(flash)}</p>` : ''}
 ${problem ? `<p class="fu-note is-bad" role="alert">${esc(problem)}</p>` : ''}
 ${b.status === 'open' && signedIn ? `<section class="fu-section" id="fu-suggest" aria-labelledby="fu-suggest-h"><h2 id="fu-suggest-h">Suggest a challenge</h2>
 <form id="fu-suggest-form" class="fu-form fu-card" method="post" action="/quests/boards/${esc(b.id)}/suggest">
-<label class="fu-field"><span>The challenge</span><input name="title" type="text" maxlength="120" required placeholder="Find the best bench with a view"></label>
+<label class="fu-field"><span>The challenge</span><input name="title" type="text" maxlength="120" required placeholder="A walk to the market"></label>
 <label class="fu-field"><span>How it works (optional)</span><textarea name="brief" rows="2" maxlength="600"></textarea></label>
 <label class="fu-field"><span>Kind</span><select name="category">${Object.entries(CATEGORY_LABEL).map(([k, l]) => `<option value="${esc(k)}">${esc(l)}</option>`).join('')}</select></label>
 <label class="fu-field"><span>A place (optional)</span><input name="place_name" type="text" maxlength="200"></label>
