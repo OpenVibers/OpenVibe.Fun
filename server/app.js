@@ -27,6 +27,7 @@ const { createKeyStore } = require('./auth/keys');
 const { createSso } = require('./auth/sso');
 const { createPrincipal } = require('./http/principal');
 const { createApi } = require('./http/api');
+const { createSharing } = require('./sharing');
 const { createPageRoutes } = require('./http/pages');
 const { createServiceReadiness } = require('./observability');
 const { assetVersion, send } = require('./render/layout');
@@ -72,7 +73,10 @@ async function createApp(opts = {}) {
         }) : null,
     });
     const search = createSearchIndex({ config, s, onQueued: () => searchRelay.kick() });
-    const store = createStore(s, { search, config });
+    // The one sharing system (design 2026-11-06, step 6): Fun's visibility columns move onto share rows; the column
+    // is still written, so an old reader fails closed.
+    const sharing = opts.sharing || createSharing({ db: s.db, config, fetchImpl, log });
+    const store = createStore(s, { search, config, sharing });
     const upstreams = createUpstreams({ config, fetchImpl, now: s.now, log });
     const guideUpstream = createGuideUpstreams({ config, s, fetchImpl, now: s.now, log });
     const guide = createGuide({ config, s, upstream: guideUpstream, now: s.now, log });
@@ -88,7 +92,7 @@ async function createApp(opts = {}) {
 
     const ctx = {
         config, s, keys, sso, principal, search, searchRelay, store, upstreams, guide, guideUpstream, coins, chatSync,
-        accountData, accountSend, log,
+        accountData, accountSend, sharing, log,
     };
 
     const app = express();
@@ -155,6 +159,26 @@ async function createApp(opts = {}) {
 
     // ── Static assets (content-hashed ?v= → immutable) ──────
     app.use('/shared', require('openvibe-shared/serve').handler());
+    // ── /api/v1/{quest,plan}/:slug/share — the one Share sheet's API (openvibe-sdk/share) ──
+    // GET/PUT .../share, .../share/requests, .../share/transfer[/accept|decline|cancel], GET /api/v1/share/people
+    // and /api/v1/shared-with-me. Access is still decided by canView on every read path; the router answers only its
+    // own paths. The sheet is a browser, so it presents the session cookie (req.viewer).
+    {
+        const shareApi = express.Router();
+        shareApi.use(sharing.shares.router({
+            service: 'fun',
+            authenticate: (req) => sharing.shareViewer(req.viewer),
+            describe: sharing.describe,
+        }));
+        const SHARE_PATH = /^\/api\/v1\/(?:shared-with-me$|share\/people$|[^/]+\/[^/]+\/share(?:\/|$))/;
+        app.use((req, res, next) => (SHARE_PATH.test(req.path) ? shareApi(req, res, next) : next()));
+    }
+    // Expire members and transfers and send queued share events/notifications. Unref'd: it never holds a test open.
+    if (opts.startSharingWorker !== false) {
+        const timer = setInterval(() => { sharing.work().catch(() => { /* logged inside */ }); }, 15_000);
+        if (timer.unref) timer.unref();
+        app.locals.sharingTimer = timer;
+    }
     app.use(express.static(PUBLIC_DIR, {
         index: false, redirect: false,
         setHeaders(res, filePath) {

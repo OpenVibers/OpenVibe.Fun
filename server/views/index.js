@@ -250,6 +250,7 @@ function quest({ q, board: b, live = null, signedIn = false, voted = false, mine
     return `<div class="fu-wrap" id="fu-quest" data-quest="${esc(q.slug)}">
 <article class="fu-quest-detail">
 <header class="fu-page-h"><p class="fu-kicker">${categoryLabel(q.category)} · ${statusBadge(q.status)}${mine ? ' · your quest' : ''}</p><h1>${esc(q.title)}</h1>
+${mine ? `<p><button type="button" class="fu-btn fu-btn-quiet" data-ov-share-sheet data-kind="quest" data-id="${esc(q.slug)}" data-title="${esc(q.title)}">Share</button></p>` : ''}
 <p class="fu-lede">${esc(q.brief)}</p>
 <dl class="fu-facts"><div><dt>Votes</dt><dd><strong id="fu-quest-votes">${Number(q.votes) || 0}</strong></dd></div><div><dt>Verification checks</dt><dd id="fu-quest-checks">${Number(q.checks) || 0}</dd></div><div><dt>On Live</dt><dd>${q.streamer_username ? `<a href="${esc(q.stream_url)}" rel="noopener">@${esc(q.streamer_username)}</a>${live && live.live ? ' · live now' : ''}` : '—'}</dd></div><div><dt>Badge</dt><dd>${q.reward_badge ? esc(q.reward_badge) : 'paid on verification'}</dd></div></dl>
 ${q.place_name ? `<p class="fu-muted">Place: ${esc(q.place_name)}${q.city ? `, ${esc(q.city)}` : ''}${q.accessible ? ' · accessible' : ''}</p>` : ''}</header>
@@ -338,6 +339,7 @@ function plan({ p, options = [], winner = null, signedIn = false, mine = false, 
     return `<div class="fu-wrap" id="fu-plan" data-plan="${esc(p.slug)}">
 <article class="fu-plan-detail">
 <header class="fu-page-h"><p class="fu-kicker">${statusBadge(p.status)} · ${p.visibility === 'public' ? 'public' : p.visibility === 'unlisted' ? 'share link' : 'private'}</p><h1>${esc(p.title)}</h1>
+${mine ? `<p><button type="button" class="fu-btn fu-btn-quiet" data-ov-share-sheet data-kind="plan" data-id="${esc(p.slug)}" data-title="${esc(p.title)}">Share</button></p>` : ''}
 <p class="fu-lede">${p.summary ? esc(p.summary) : `A group plan${p.city ? ` in ${esc(p.city)}` : ''}.`}</p>
 <dl class="fu-facts"><div><dt>Starts</dt><dd>${when(p.starts_at)}</dd></div><div><dt>Timezone</dt><dd>${esc(p.timezone)}</dd></div><div><dt>Votes</dt><dd id="fu-plan-total">${Number(totalVotes) || 0}</dd></div><div><dt>Voting closes</dt><dd>${when(p.closes_at)}</dd></div></dl></header>
 ${flash ? `<p class="fu-note" role="status">${esc(flash)}</p>` : ''}

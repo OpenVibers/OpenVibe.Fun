@@ -83,7 +83,7 @@ function renderPage(o) {
         navLinks: NAV,
         navbar: nav,
         footer,
-        head: `<meta name="referrer" content="strict-origin-when-cross-origin">
+        head: `${o.head || ''}<meta name="referrer" content="strict-origin-when-cross-origin">
 ${appIcon.headTags({ site: 'fun' })}
 <link rel="stylesheet" href="${ovServe.url('kit.css')}">
 <link rel="stylesheet" href="${ovServe.url('room.css')}">

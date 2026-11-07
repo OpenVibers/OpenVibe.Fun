@@ -31,6 +31,17 @@ const views = require('../views');
 
 const PUBLIC_CACHE = 'public, max-age=60';
 
+// The one Share sheet (openvibe-shared ov-share.js): its stylesheet and script, and the gate that draws itself from
+// markup. A page with a Share button needs the shared navbar, which loads the sheet on the first press.
+const SHARE_HEAD = `<link rel="stylesheet" href="${require('openvibe-shared/serve').url('ov-share.css')}"><script src="${require('openvibe-shared/serve').url('ov-share.js')}" defer></script>`;
+
+/** The account a person not on a Specific-people item's list sees: the audience, never its title. */
+function shareGateHtml(kind, slug, { signedInAs = '', signInUrl = '/auth/login' } = {}) {
+    const what = kind === 'plan' ? 'plan' : 'quest';
+    return `<div class="fu-wrap fu-page-pad fu-narrow"><div class="fu-empty"><h1>This ${what} is shared with specific people</h1><p class="fu-muted">Sign in with the OpenVibe account it was shared with, or ask its owner for access.</p>
+<div data-ov-share-gate data-kind="${kind}" data-id="${slug}" data-signed-in-as="${signedInAs}" data-sign-in-url="${signInUrl}">This is shared with specific people. Sign in with the OpenVibe account it was shared with, or ask its owner for access.</div></div></div>`;
+}
+
 function createPageRoutes(ctx) {
     const { config, s, store, upstreams, guide, coins } = ctx;
     const r = asyncRouter();
@@ -182,11 +193,21 @@ function createPageRoutes(ctx) {
     });
 
     async function renderQuest(req, res, { problem = null, status = 200, flash = null } = {}) {
-        const out = await store.questForPage(String(req.params.slug || ''), { subject: signedIn(req) ? req.viewer.subject : null, staff: staffViewer(req) });
-        if (!out) return notFound(req, res);
+        const slug = String(req.params.slug || '');
+        const out = await store.questForPage(slug, { subject: signedIn(req) ? req.viewer.subject : null, staff: staffViewer(req) });
+        if (!out) {
+            const audience = ctx.sharing ? await ctx.sharing.audienceOf('quest', slug).catch(() => null) : null;
+            if (audience === 'people') {
+                return page(req, res, {
+                    title: 'A quest shared with specific people', head: SHARE_HEAD,
+                    body: raw(shareGateHtml('quest', slug, { signedInAs: signedIn(req) ? (req.viewer.user && req.viewer.user.username) || '' : '', signInUrl: `/auth/login?next=${encodeURIComponent(req.originalUrl)}` })),
+                }, 404);
+            }
+            return notFound(req, res);
+        }
         const live = await liveOf(out.quest.streamer_username);
         return page(req, res, {
-            index: out.quest.visibility === 'public', agentLayer: out.quest.visibility === 'public', cache: out.quest.visibility === 'public' ? PUBLIC_CACHE : null,
+            index: out.quest.visibility === 'public', agentLayer: out.quest.visibility === 'public', cache: out.quest.visibility === 'public' ? PUBLIC_CACHE : null, head: SHARE_HEAD,
             title: out.quest.title,
             description: out.quest.brief.slice(0, 160),
             jsonLd: out.quest.visibility === 'public' ? [seo.jsonLd.webPage({ name: out.quest.title, url: `${base()}/q/${out.quest.slug}`, description: out.quest.brief.slice(0, 160), siteUrl: base() })] : [],
@@ -282,10 +303,20 @@ function createPageRoutes(ctx) {
     });
 
     async function renderPlan(req, res, { problem = null, status = 200, flash = null } = {}) {
-        const out = await store.planForPage(String(req.params.slug || ''), { subject: signedIn(req) ? req.viewer.subject : null, staff: staffViewer(req) });
-        if (!out) return notFound(req, res);
+        const slug = String(req.params.slug || '');
+        const out = await store.planForPage(slug, { subject: signedIn(req) ? req.viewer.subject : null, staff: staffViewer(req) });
+        if (!out) {
+            const audience = ctx.sharing ? await ctx.sharing.audienceOf('plan', slug).catch(() => null) : null;
+            if (audience === 'people') {
+                return page(req, res, {
+                    title: 'A plan shared with specific people', head: SHARE_HEAD,
+                    body: raw(shareGateHtml('plan', slug, { signedInAs: signedIn(req) ? (req.viewer.user && req.viewer.user.username) || '' : '', signInUrl: `/auth/login?next=${encodeURIComponent(req.originalUrl)}` })),
+                }, 404);
+            }
+            return notFound(req, res);
+        }
         return page(req, res, {
-            index: out.plan.visibility === 'public', agentLayer: out.plan.visibility === 'public', cache: out.plan.visibility === 'public' ? PUBLIC_CACHE : null,
+            index: out.plan.visibility === 'public', agentLayer: out.plan.visibility === 'public', cache: out.plan.visibility === 'public' ? PUBLIC_CACHE : null, head: SHARE_HEAD,
             title: out.plan.title,
             description: (out.plan.summary || 'A group plan on OpenVibe.Fun').slice(0, 160),
             jsonLd: out.plan.visibility === 'public' ? [seo.jsonLd.webPage({ name: out.plan.title, url: `${base()}/plans/${out.plan.slug}`, description: (out.plan.summary || 'A group plan on OpenVibe.Fun').slice(0, 160), siteUrl: base() })] : [],

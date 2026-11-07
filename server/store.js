@@ -100,7 +100,7 @@ function parseWhen(v) {
     return Number.isNaN(d.getTime()) ? null : d;
 }
 
-function createStore(s, { search = { sync: async () => null }, config = {} } = {}) {
+function createStore(s, { search = { sync: async () => null }, config = {}, sharing = null } = {}) {
     const db = s.db;
     const q = (t) => t || db;
     const questConfig = config.quests || {};
@@ -116,6 +116,26 @@ function createStore(s, { search = { sync: async () => null }, config = {} } = {
     }
     async function planBySlug(slug, t) {
         return await q(t).maybe('SELECT * FROM fun_plans WHERE slug = $1', [String(slug || '')]);
+    }
+
+    /**
+     * The audience a quest or plan really has (design 2026-11-06, step 6): its share row, or — for a row made before
+     * the move — its old column, 1:1. The column is kept written on every change, so gathered queries still filter on it.
+     */
+    async function audienceOf(kind, slug, column) {
+        const moved = sharing ? await sharing.audienceOf(kind, slug).catch(() => null) : null;
+        return moved || ({ public: 'public', unlisted: 'link', hidden: 'private' })[column] || 'private';
+    }
+
+    /** Whether this viewer may read it: the owner and staff always, Everyone/link anyone, Specific people only members. */
+    async function readerMaySee(kind, slug, column, { subject = null, staff = false, owner = false } = {}) {
+        if (owner || staff) return true;
+        const audience = await audienceOf(kind, slug, column);
+        if (audience === 'public' || audience === 'link') return true;
+        if (audience === 'people' && sharing) {
+            return await sharing.canView(subject ? { kind: 'user', subject } : null, kind, slug).catch(() => false);
+        }
+        return false;
     }
     async function planById(id, t) {
         return await q(t).maybe('SELECT * FROM fun_plans WHERE id = $1', [String(id || '')]);
@@ -231,6 +251,8 @@ function createStore(s, { search = { sync: async () => null }, config = {} } = {
                     board.live_username, board.chat_username, `https://openvibe.live/@${encodeURIComponent(board.live_username)}`,
                     subject && SUBJECT_RE.test(String(subject)) ? subject : null, chatUsername ? chatVoter(chatUsername).slice(5) : null],
             );
+            // Its share row starts at the suggestion's own word (unlisted -> Anyone with the link).
+            if (sharing) await sharing.registerSystem('quest', slug, board.streamer_subject, row.visibility, t);
             return { ok: true, quest: wireQuest(row, { votes: 0 }) };
         });
     }
@@ -290,7 +312,11 @@ function createStore(s, { search = { sync: async () => null }, config = {} } = {
                    revision = revision + 1, updated_at = now() WHERE id = $1 RETURNING *`,
                 [quest.id, Number(questConfig.coins) || 0],
             );
+            // Accepting makes it Everyone, on the share row as well as the old column.
+            if (sharing) await sharing.setSystemAudience('quest', quest.slug, 'public', t);
             await t.exec("UPDATE fun_quests SET status = 'rejected', visibility = 'hidden', revision = revision + 1, updated_at = now() WHERE board_id = $1 AND id <> $2 AND status = 'suggested'", [board.id, quest.id]);
+            if (sharing) await t.exec(`UPDATE shares SET audience = 'private', revision = revision + 1
+                WHERE service = 'fun' AND kind = 'quest' AND resource_id IN (SELECT slug FROM fun_quests WHERE board_id = $1 AND visibility = 'hidden')`, [board.id]);
             await t.exec("UPDATE fun_quest_boards SET status = 'accepted', accepted_quest_id = $2, updated_at = now() WHERE id = $1", [board.id, quest.id]);
             const out = wireQuest(updated, { votes: (await countsForQuest(quest.id, t)).votes });
             await search.sync(t, 'quest', out);
@@ -381,6 +407,7 @@ function createStore(s, { search = { sync: async () => null }, config = {} } = {
             if (!quest) return refusal(404, 'fun.quest_not_found', 'No such quest.');
             if (quest.visibility === 'hidden') return { ok: true, quest: wireQuest(quest), unchanged: true };
             const updated = await t.maybe("UPDATE fun_quests SET visibility = 'hidden', status = 'hidden', revision = revision + 1, updated_at = now() WHERE id = $1 RETURNING *", [quest.id]);
+            if (sharing) await sharing.setSystemAudience('quest', quest.slug, 'hidden', t);
             await search.sync(t, 'quest', wireQuest(updated));
             return { ok: true, quest: wireQuest(updated) };
         });
@@ -391,11 +418,9 @@ function createStore(s, { search = { sync: async () => null }, config = {} } = {
         if (!quest) return null;
         const board = await boardById(quest.board_id);
         const isOwner = Boolean(subject && board && board.streamer_subject === subject);
-        if (quest.visibility === 'hidden' && !staff && !isOwner) return null;
-        if (quest.visibility === 'unlisted' && !staff && !isOwner && !subject) {
-            // An unlisted suggestion is visible by its board link, not by the public quest URL, unless signed in.
-            // The board page is the shareable place; the quest page still works for a signed-in viewer by design.
-        }
+        // Its audience (the share row, else the old column) decides: Only me is the owner's, Specific people is its
+        // members', Everyone and Anyone with the link are readable by whoever has the address.
+        if (!await readerMaySee('quest', quest.slug, quest.visibility, { subject, staff, owner: isOwner })) return null;
         const counts = await countsForQuest(quest.id);
         const voted = subject ? Boolean(await db.maybe('SELECT 1 AS x FROM fun_quest_votes WHERE quest_id = $1 AND voter = $2', [quest.id, subject])) : false;
         return { quest: wireQuest(quest, { votes: counts.votes, checks: counts.checks, mine: isOwner, voted }), board: wireBoard(board) };
@@ -501,6 +526,8 @@ function createStore(s, { search = { sync: async () => null }, config = {} } = {
                 saved.push(wireOption(opt));
             }
             const plan = wirePlan(row, { options: saved });
+            // Its share row starts at the form's own choice (public -> Everyone, unlisted -> Anyone with the link).
+            if (sharing) await sharing.registerSystem('plan', slug, ownerSubject, row.visibility, t);
             if (row.visibility === 'public') await search.sync(t, 'plan', plan, saved);
             return { ok: true, plan };
         });
@@ -578,7 +605,7 @@ function createStore(s, { search = { sync: async () => null }, config = {} } = {
         const plan = await planBySlug(slug);
         if (!plan) return null;
         const isOwner = Boolean(subject && plan.owner_subject === subject);
-        if (plan.visibility === 'hidden' && !staff && !isOwner) return null;
+        if (!await readerMaySee('plan', plan.slug, plan.visibility, { subject, staff, owner: isOwner })) return null;
         const rows = await db.many('SELECT * FROM fun_plan_options WHERE plan_id = $1 ORDER BY position', [plan.id]);
         const voteRows = await db.many('SELECT option_id, COUNT(*)::int AS votes FROM fun_plan_votes WHERE plan_id = $1 GROUP BY option_id', [plan.id]);
         const byOption = Object.fromEntries(voteRows.map((r) => [r.option_id, Number(r.votes) || 0]));
@@ -633,6 +660,7 @@ function createStore(s, { search = { sync: async () => null }, config = {} } = {
             if (!plan) return refusal(404, 'fun.plan_not_found', 'No such plan.');
             if (plan.visibility === 'hidden') return { ok: true, plan: wirePlan(plan), unchanged: true };
             const updated = await t.maybe("UPDATE fun_plans SET visibility = 'hidden', status = 'cancelled', revision = revision + 1, updated_at = now() WHERE id = $1 RETURNING *", [plan.id]);
+            if (sharing) await sharing.setSystemAudience('plan', plan.slug, 'hidden', t);
             await search.sync(t, 'plan', wirePlan(updated), []);
             return { ok: true, plan: wirePlan(updated) };
         });
