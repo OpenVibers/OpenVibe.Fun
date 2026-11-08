@@ -319,19 +319,20 @@ function planNew({ values = {}, problem = null } = {}) {
 <p class="fu-lede">Add two or three things to do, send the link to the group, and let the votes choose. The winner can go to your own Today in one press; Fun never writes to anyone else's calendar.</p></header>
 ${problem ? `<p class="fu-note is-bad" role="alert">${esc(problem)}</p>` : ''}
 <form id="fu-plan-form" class="fu-form fu-card" method="post" action="/plans">
+${v.place ? `<p class="fu-note">Planning a visit to ${esc(v.place)}${v.place_url ? ` · <a href="${esc(v.place_url)}" rel="noopener">See the place</a>` : ''}</p><input type="hidden" name="place" value="${esc(v.place)}"><input type="hidden" name="place_url" value="${esc(v.place_url || '')}"><input type="hidden" name="lat" value="${esc(v.lat || '')}"><input type="hidden" name="lon" value="${esc(v.lon || '')}">` : ''}
 <label class="fu-field"><span>Plan title</span><input name="title" type="text" maxlength="120" value="${esc(v.title || '')}" required placeholder="Friday with the group"></label>
 <label class="fu-field"><span>Why / notes (optional)</span><textarea name="summary" rows="2" maxlength="1200">${esc(v.summary || '')}</textarea></label>
 <label class="fu-field"><span>City</span><input name="city" type="text" maxlength="120" value="${esc(v.city || '')}" placeholder="Portland, Oregon"></label>
-<label class="fu-field"><span>Starts at (ISO time)</span><input name="starts_at" type="text" maxlength="40" value="${esc(v.starts_at || '')}" required placeholder="2026-10-30T19:00:00Z"></label>
-<label class="fu-field"><span>Voting closes at (ISO time, optional)</span><input name="closes_at" type="text" maxlength="40" value="${esc(v.closes_at || '')}" placeholder="2026-10-29T19:00:00Z"></label>
+<label class="fu-field"><span>Starts at (ISO time)</span><input name="starts_at" type="text" maxlength="40" value="${esc(v.starts_at || '')}" required placeholder="YYYY-MM-DDTHH:MM:SSZ"></label>
+<label class="fu-field"><span>Voting closes at (ISO time, optional)</span><input name="closes_at" type="text" maxlength="40" value="${esc(v.closes_at || '')}" placeholder="YYYY-MM-DDTHH:MM:SSZ"></label>
 <label class="fu-field"><span>Timezone</span><input name="timezone" type="text" maxlength="80" value="${esc(v.timezone || 'UTC')}" placeholder="America/Los_Angeles"></label>
 <label class="fu-field"><span>Who can see it?</span><select name="visibility"><option value="unlisted"${v.visibility === 'unlisted' ? ' selected' : ''}>Anyone with the link</option><option value="public"${v.visibility === 'public' ? ' selected' : ''}>Public</option><option value="hidden"${v.visibility === 'hidden' ? ' selected' : ''}>Only me</option></select></label>
 <label class="fu-field"><span>Chat channel for votes (optional)</span><input name="chat_username" type="text" maxlength="64" value="${esc(v.chat_username || '')}" placeholder="ada"></label>
 <fieldset class="fu-options"><legend>Options</legend>
-${opts.map((o, i) => `<label class="fu-field"><span>Option ${i + 1}${i === 0 ? '' : ' (optional)'}</span><input name="option${i + 1}_title" type="text" maxlength="120" value="${esc(o)}" placeholder="${i === 0 ? 'The mural walk' : ''}"></label>`).join('')}
+${opts.map((o, i) => `<label class="fu-field"><span>Option ${i + 1}${i === 0 ? '' : ' (optional)'}</span><input name="option${i + 1}_title" type="text" maxlength="120" value="${esc(o)}" placeholder="${i === 0 ? 'The mural walk' : ''}"></label><label class="fu-field"><span>Option ${i + 1} date and time (optional)</span><input name="option${i + 1}_starts_at" type="datetime-local" value="${esc(v[`option${i + 1}_starts_at`] || '')}"></label>`).join('')}
 </fieldset>
 <div class="fu-actions"><button class="fu-btn" type="submit">Start the plan</button></div>
-<p class="fu-fine">Times are UTC unless the timezone says otherwise. Voting closes one hour before the start when left blank.</p>
+<p class="fu-fine">The group can vote on dates as well as activities. The selected option's date becomes the plan date. Enter ISO time for the main start; voting closes one hour before it when left blank.</p>
 </form></div>`;
 }
 
@@ -360,7 +361,7 @@ ${problem ? `<p class="fu-note is-bad" role="alert">${esc(problem)}</p>` : ''}
 <section class="fu-section" id="fu-plan-options" aria-labelledby="fu-plan-options-h"><div class="fu-head-row"><h2 id="fu-plan-options-h">The options</h2><span class="fu-count">${options.length} ${options.length === 1 ? 'option' : 'options'}</span></div>
 ${options.length ? `<ol class="fu-options-list">${options.map((o) => `<li class="fu-option${o.id === (winner && winner.id) ? ' is-winner' : ''}${o.id === myOptionId ? ' is-mine' : ''}" data-option="${esc(o.id)}">
 <div class="fu-option-body"><h3>${Number(o.position)}. ${esc(o.title)}${o.id === (winner && winner.id) ? ' <span class="fu-winner">chosen</span>' : ''}</h3>
-${o.details ? `<p>${esc(o.details)}</p>` : ''}
+${o.details ? `<p>${esc(o.details)}</p>` : ''}${o.starts_at ? `<p>${when(o.starts_at)}</p>` : ''}
 <p class="fu-option-meta">${esc(String(o.votes || 0))} ${Number(o.votes) === 1 ? 'vote' : 'votes'} · ${pct(o.votes, totalVotes)}%${o.accessible ? ' · <span class="fu-accessible">Accessible</span>' : ''}${o.price_note ? ` · ${esc(o.price_note)}` : ''}${o.place_name ? ` · ${esc(o.place_name)}` : ''}</p>
 <div class="fu-vote-bar" role="img" aria-label="${esc(String(o.votes || 0))} votes"><span style="width:${pct(o.votes, totalVotes)}%"></span></div></div>
 ${signedIn && p.status === 'voting' ? `<form method="post" action="/plans/${esc(p.slug)}/vote" class="fu-inline"><input type="hidden" name="option_id" value="${esc(o.id)}"><button class="fu-btn fu-btn-small" type="submit"${o.id === myOptionId ? ' disabled' : ''}>${o.id === myOptionId ? 'Your vote' : 'Vote'}</button></form>` : ''}

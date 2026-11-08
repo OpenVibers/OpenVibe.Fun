@@ -223,6 +223,7 @@ async function createApp(opts = {}) {
         agentLayer.mount(agent, { descriptor: require('./agent-descriptor'), render: require('./agent-pages').createAgentPages(ctx).renderPublicPage });
         app.use(agent);
     }
+    app.use(require('./places/lists').createPlaceListRoutes(ctx));
     app.use(createPageRoutes(ctx));
     app.use((req, res) => send(res, 404, {
         viewer: req.viewer, config, path: req.originalUrl, title: 'Not found',

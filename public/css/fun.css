@@ -53,6 +53,8 @@ html, body { margin: 0; background: var(--bg-primary, #0a0f1c); color: var(--tex
 .fu-field { display: grid; gap: 6px; font-size: .82rem; font-weight: 700; color: var(--text-secondary, #96a7c2); min-width: 0; }
 .fu-field input, .fu-field select, .fu-field textarea { width: 100%; min-height: 42px; padding: 9px 12px; border-radius: 12px; border: 1px solid var(--border, #1f2d47); background: var(--bg-input, var(--bg-primary, #0a0f1c)); color: var(--text-primary, #e6edf7); font: inherit; font-size: .95rem; font-weight: 500; }
 .fu-field input:focus, .fu-field select:focus, .fu-field textarea:focus { outline: 2px solid var(--room-accent); outline-offset: 1px; border-color: transparent; }
+fieldset.fu-options { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; min-width: 0; margin: 0; padding: 14px; border: 1px solid var(--border, #1f2d47); border-radius: 12px; }
+fieldset.fu-options legend { padding: 0 6px; font-weight: 700; }
 .fu-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 20px 0 0; }
 .fu-facts > div { padding: 12px 14px; border-radius: 14px; background: var(--bg-card, #0f1729); border: 1px solid var(--border, #1f2d47); min-width: 0; }
 .fu-facts dt { font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted, #7386a3); }
