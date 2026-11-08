@@ -105,7 +105,7 @@ function home({ counts = {}, featured = [], plans = [], now = Date.now(), base =
         room: 'fun',
         hero: {
             title: 'Something to do, alone, together, or live',
-            lede: 'IRL quests for streamers and their chat, a local guide that reads OpenStreetMap, and group plans where the vote picks the plan. Everything has a map, a time and a link — and it all works without JavaScript.',
+            lede: 'IRL quests for streamers and their chat, a local guide from OpenStreetMap, and group plans the vote decides. Each one has a map, a time and a link.',
             start: { href: '/guide', label: 'Find something near me' },
             chips: [{ label: 'IRL quests', href: '/quests' }, { label: 'Group plans', href: '/plans' }, { label: 'For streamers', href: '/live' }],
             proof: Number(counts.quests) || Number(counts.plans) ? [
