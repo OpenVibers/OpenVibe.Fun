@@ -24,6 +24,9 @@ const TABLES = [
     { table: 'fun_plans', subject: 'owner_subject', file: 'plans.json', erase: { anonymize: { owner_username: null } } },
     { table: 'fun_plan_options', subject: 'created_by', file: 'plan-options.json', erase: { anonymize: {} } },
     { table: 'fun_plan_votes', subject: 'subject', file: 'plan-votes.json', erase: 'delete' },
+    { table: 'fun_place_lists', subject: 'owner_subject', file: 'place-lists.json', erase: 'delete' },
+    { table: 'fun_place_list_members', subject: 'subject', file: 'place-list-memberships.json', erase: 'delete' },
+    { table: 'fun_place_list_items', subject: 'added_by', file: 'place-list-items.json', erase: 'delete' },
     { table: 'fun_reports', subject: 'subject', file: 'reports.json', erase: 'delete' },
 ];
 

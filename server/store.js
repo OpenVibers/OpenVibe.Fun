@@ -593,7 +593,9 @@ function createStore(s, { search = { sync: async () => null }, config = {}, shar
             if (!rows.length) return refusal(409, 'fun.plan_no_votes', 'Nobody has voted yet.');
             const votes = rows.map((r) => ({ option_id: r.option_id, votes: Number(r.votes) || 0 }));
             if (votes.length > 1 && votes[0].votes === votes[1].votes) return refusal(409, 'fun.plan_tie', 'The vote is tied; add a tie-break or ask one more person to vote.');
-            const updated = await t.maybe("UPDATE fun_plans SET status = 'decided', winner_option_id = $2, revision = revision + 1, updated_at = now() WHERE id = $1 RETURNING *", [plan.id, votes[0].option_id]);
+            const updated = await t.maybe(`UPDATE fun_plans SET status = 'decided', winner_option_id = $2,
+                starts_at = COALESCE((SELECT starts_at FROM fun_plan_options WHERE id = $2 AND plan_id = $1), starts_at),
+                revision = revision + 1, updated_at = now() WHERE id = $1 RETURNING *`, [plan.id, votes[0].option_id]);
             const options = (await t.many('SELECT * FROM fun_plan_options WHERE plan_id = $1 ORDER BY position', [plan.id])).map((o) => wireOption(o));
             const out = wirePlan(updated, { options, votes });
             if (updated.visibility === 'public') await search.sync(t, 'plan', out, options);

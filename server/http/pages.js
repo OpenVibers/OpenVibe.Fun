@@ -282,21 +282,29 @@ function createPageRoutes(ctx) {
     });
 
     r.get('/plans/new', (req, res) => {
-        if (!signedIn(req)) return page(req, res, { title: 'Start a plan', body: raw(views.signIn({ title: 'Start a group plan', text: 'A plan belongs to your OpenVibe account; the group can vote with the link.', next: '/plans/new' })) }, 401);
-        return page(req, res, { index: false, title: 'Start a group plan', body: raw(views.planNew({ values: { timezone: 'UTC' } })) });
+        if (!signedIn(req)) return page(req, res, { title: 'Start a plan', body: raw(views.signIn({ title: 'Start a group plan', text: 'A plan belongs to your OpenVibe account; the group can vote with the link.', next: req.originalUrl })) }, 401);
+        const place = typeof req.query.place === 'string' ? req.query.place.slice(0, 120) : '';
+        const city = typeof req.query.city === 'string' ? req.query.city.slice(0, 120) : '';
+        const placeUrl = typeof req.query.url === 'string' && /^https:\/\/openvibe\.tours\/place\/[a-z0-9-]+-plc_[0-9A-HJKMNP-TV-Z]{26}$/.test(req.query.url) ? req.query.url : '';
+        return page(req, res, { index: false, title: 'Start a group plan', body: raw(views.planNew({ values: {
+            timezone: 'UTC', place, city, place_url: placeUrl,
+            title: place ? `Go to ${place} together` : '', option1_title: place ? `Visit ${place}` : '',
+            lat: typeof req.query.lat === 'string' ? req.query.lat : '', lon: typeof req.query.lon === 'string' ? req.query.lon : '',
+        } })) });
     });
 
     r.post('/plans', guard, async (req, res) => {
         const b = req.body || {};
-        const options = [1, 2, 3].map((i) => String(b[`option${i}_title`] || '').trim()).filter(Boolean).map((title) => ({ title }));
+        const options = [1, 2, 3].map((i) => ({ title: String(b[`option${i}_title`] || '').trim(), starts_at: b[`option${i}_starts_at`] || null,
+            place_name: b.place || null, lat: b.lat || null, lon: b.lon || null })).filter((o) => o.title);
         const out = await store.createPlan({
             ownerSubject: req.viewer.subject, ownerUsername: req.viewer.username,
-            title: b.title, summary: b.summary, city: b.city, timezone: b.timezone, startsAt: b.starts_at, closesAt: b.closes_at,
+            title: b.title, summary: b.summary, city: b.city, lat: b.lat, lon: b.lon, timezone: b.timezone, startsAt: b.starts_at, closesAt: b.closes_at,
             visibility: b.visibility, chatUsername: b.chat_username, options,
         });
         if (!out.ok) {
-            const values = { ...formValues(b, ['title', 'summary', 'city', 'starts_at', 'closes_at', 'timezone', 'visibility', 'chat_username']) };
-            for (const i of [1, 2, 3]) values[`option${i}_title`] = b[`option${i}_title`] || '';
+            const values = { ...formValues(b, ['title', 'summary', 'city', 'starts_at', 'closes_at', 'timezone', 'visibility', 'chat_username', 'place', 'place_url', 'lat', 'lon']) };
+            for (const i of [1, 2, 3]) { values[`option${i}_title`] = b[`option${i}_title`] || ''; values[`option${i}_starts_at`] = b[`option${i}_starts_at`] || ''; }
             return page(req, res, { title: 'Start a group plan', body: raw(views.planNew({ values, problem: out.message })) }, out.status || 400);
         }
         return res.redirect(303, `/plans/${encodeURIComponent(out.plan.slug)}`);
