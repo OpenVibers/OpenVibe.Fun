@@ -93,9 +93,25 @@ function validTimezone(tz) {
     try { new Intl.DateTimeFormat('en-US', { timeZone: String(tz) }); return true; } catch { return false; }
 }
 
-function parseWhen(v) {
+// A date picker sends local time with no zone ("2026-11-14T19:30"). Read as UTC, a 7:30 pm plan in Portland was saved
+// for 11:30 am there (11-09). With a time zone, such a value is read in that zone; a value with a zone keeps its own.
+const LOCAL_TIME = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/;
+function zonedToUtc(m, tz) {
+    const wall = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0));
+    const fmt = new Intl.DateTimeFormat('en-US', { timeZone: tz, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const offset = (ts) => {
+        const p = Object.fromEntries(fmt.formatToParts(new Date(ts)).map((x) => [x.type, x.value]));
+        return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second) - ts;
+    };
+    let ts = wall - offset(wall);
+    ts = wall - offset(ts);   // a second pass settles a daylight-saving edge
+    return new Date(ts);
+}
+function parseWhen(v, tz = null) {
     if (v instanceof Date) return Number.isNaN(v.getTime()) ? null : v;
     if (typeof v !== 'string' || !v.trim()) return null;
+    const m = LOCAL_TIME.exec(v.trim());
+    if (m && tz && validTimezone(tz)) return zonedToUtc(m, tz);
     const d = new Date(v.trim());
     return Number.isNaN(d.getTime()) ? null : d;
 }
@@ -170,7 +186,7 @@ function createStore(s, { search = { sync: async () => null }, config = {}, shar
     }
 
     // ── Quest boards and suggestions ─────────────────────────
-    async function createBoard({ streamerSubject, title, liveUsername, chatUsername, city = null, lat = null, lon = null, accessibleOnly = false, maxSuggestions = null, closesAt = null }) {
+    async function createBoard({ streamerSubject, title, liveUsername, chatUsername, city = null, lat = null, lon = null, accessibleOnly = false, maxSuggestions = null, closesAt = null, timezone = null }) {
         if (!SUBJECT_RE.test(String(streamerSubject || ''))) return refusal(403, 'fun.person_required', 'A board belongs to a signed-in person.');
         if (!USERNAME_RE.test(String(liveUsername || ''))) return refusal(400, 'fun.quest.invalid', 'live_username is required', 'live_username');
         if (!USERNAME_RE.test(String(chatUsername || ''))) return refusal(400, 'fun.quest.invalid', 'chat_username is required', 'chat_username');
@@ -181,7 +197,7 @@ function createStore(s, { search = { sync: async () => null }, config = {}, shar
         const la = num(lat); const lo = num(lon);
         if (la != null && (la < -90 || la > 90)) return refusal(400, 'fun.quest.invalid', 'lat must be -90 to 90', 'lat');
         if (lo != null && (lo < -180 || lo > 180)) return refusal(400, 'fun.quest.invalid', 'lon must be -180 to 180', 'lon');
-        const close = closesAt ? parseWhen(closesAt) : new Date(s.now() + 4 * 60 * 60_000);
+        const close = closesAt ? parseWhen(closesAt, timezone) : new Date(s.now() + 4 * 60 * 60_000);
         if (!close || close.getTime() <= s.now() + 60_000) return refusal(400, 'fun.quest.invalid', 'closes_at must be in the future', 'closes_at');
         const max = Math.min(100, Math.max(1, Number(maxSuggestions) || questConfig.maxSuggestions || 30));
         const id = s.newId('qbd');
@@ -480,11 +496,11 @@ function createStore(s, { search = { sync: async () => null }, config = {}, shar
         if (lo != null && (lo < -180 || lo > 180)) return refusal(400, 'fun.plan.invalid', 'lon must be -180 to 180', 'lon');
         const tz = String(timezone || 'UTC');
         if (!validTimezone(tz)) return refusal(400, 'fun.plan.invalid', 'timezone must be a valid IANA zone', 'timezone');
-        const start = parseWhen(startsAt);
+        const start = parseWhen(startsAt, tz);
         if (!start) return refusal(400, 'fun.plan.invalid', 'starts_at must be an ISO time', 'starts_at');
         if (start.getTime() < s.now() + 5 * 60_000) return refusal(400, 'fun.plan.invalid', 'starts_at must be at least 5 minutes ahead', 'starts_at');
         if (start.getTime() > s.now() + 366 * 86_400_000) return refusal(400, 'fun.plan.invalid', 'starts_at must be within a year', 'starts_at');
-        const close = closesAt ? parseWhen(closesAt) : new Date(start.getTime() - 60 * 60_000);
+        const close = closesAt ? parseWhen(closesAt, tz) : new Date(start.getTime() - 60 * 60_000);
         if (!close) return refusal(400, 'fun.plan.invalid', 'closes_at must be an ISO time', 'closes_at');
         if (close.getTime() <= s.now() + 60_000) return refusal(400, 'fun.plan.invalid', 'closes_at must be in the future', 'closes_at');
         if (close.getTime() > start.getTime()) return refusal(400, 'fun.plan.invalid', 'closes_at must not be after starts_at', 'closes_at');
@@ -521,7 +537,7 @@ function createStore(s, { search = { sync: async () => null }, config = {}, shar
                      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::timestamptz, $11, $12) RETURNING *`,
                     [s.newId('pop'), id, o.title, o.details ? clean(o.details, 1200) : null, o.place_name ? clean(o.place_name, 200) : null,
                         num(o.lat), num(o.lon), Boolean(o.accessible), o.price_note ? clean(o.price_note, 80) : null,
-                        o.starts_at ? parseWhen(o.starts_at)?.toISOString() || null : null, ownerSubject, o.position],
+                        o.starts_at ? parseWhen(o.starts_at, checked.fields.timezone)?.toISOString() || null : null, ownerSubject, o.position],
                 );
                 saved.push(wireOption(opt));
             }
@@ -548,7 +564,7 @@ function createStore(s, { search = { sync: async () => null }, config = {}, shar
                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::timestamptz, $11, $12) RETURNING *`,
                 [s.newId('pop'), plan.id, t, details ? clean(details, 1200) : null, placeName ? clean(placeName, 200) : null,
                     num(lat), num(lon), Boolean(accessible), priceNote ? clean(priceNote, 80) : null,
-                    startsAt ? parseWhen(startsAt)?.toISOString() || null : null, subject, n + 1],
+                    startsAt ? parseWhen(startsAt, plan.timezone)?.toISOString() || null : null, subject, n + 1],
             );
             const updated = await tx.maybe('UPDATE fun_plans SET revision = revision + 1, updated_at = now() WHERE id = $1 RETURNING *', [plan.id]);
             const options = (await tx.many('SELECT * FROM fun_plan_options WHERE plan_id = $1 ORDER BY position', [plan.id])).map((o) => wireOption(o));
@@ -739,4 +755,4 @@ function slugify(title) {
     return s || 'fun';
 }
 
-module.exports = { createStore, slugify, wireBoard, wireQuest, wirePlan, wireOption, wireReport, SLUG_RE, USERNAME_RE, SUBJECT_RE, QUEST_STATUSES, PUBLIC_QUEST_STATUSES, VISIBILITIES, PLAN_STATUSES, REPORT_KINDS };
+module.exports = { createStore, parseWhen, slugify, wireBoard, wireQuest, wirePlan, wireOption, wireReport, SLUG_RE, USERNAME_RE, SUBJECT_RE, QUEST_STATUSES, PUBLIC_QUEST_STATUSES, VISIBILITIES, PLAN_STATUSES, REPORT_KINDS };
