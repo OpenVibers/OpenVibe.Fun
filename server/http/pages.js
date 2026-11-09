@@ -142,7 +142,7 @@ function createPageRoutes(ctx) {
         }
         const out = await store.createBoard({
             streamerSubject: req.viewer.subject, title: b.title, liveUsername: channel.username, chatUsername: b.chat_username || channel.username,
-            city: b.city, accessibleOnly: b.accessible_only === '1', maxSuggestions: b.max_suggestions, closesAt: b.closes_at,
+            city: b.city, accessibleOnly: b.accessible_only === '1', maxSuggestions: b.max_suggestions, closesAt: b.closes_at, timezone: b.timezone,
         });
         if (!out.ok) return page(req, res, { title: 'Open a quest board', body: raw(views.questNew({ values: formValues(b, ['live_username', 'title', 'city', 'closes_at', 'max_suggestions', 'chat_username']), problem: out.message })) }, out.status || 400);
         return res.redirect(303, `/quests/boards/${encodeURIComponent(out.board.id)}`);

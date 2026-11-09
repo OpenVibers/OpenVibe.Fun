@@ -159,7 +159,7 @@ function createApi(ctx) {
         }
         const out = await store.createBoard({
             streamerSubject: p.subject, title: b.title, liveUsername: channel.username, chatUsername: b.chat_username || channel.username,
-            city: b.city, lat: b.lat, lon: b.lon, accessibleOnly: bool(b.accessible_only), maxSuggestions: b.max_suggestions, closesAt: b.closes_at,
+            city: b.city, lat: b.lat, lon: b.lon, accessibleOnly: bool(b.accessible_only), maxSuggestions: b.max_suggestions, closesAt: b.closes_at, timezone: b.timezone,
         });
         if (!out.ok) return refuse(res, out);
         res.set('Location', `/api/v1/quests/boards/${out.board.id}`);

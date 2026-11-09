@@ -215,14 +215,16 @@ function questNew({ values = {}, problem = null } = {}) {
 <p class="fu-lede">One board for one session. Your signed-in Network username must match the Live channel; Fun checks the public Live channel before it writes anything.</p></header>
 ${problem ? `<p class="fu-note is-bad" role="alert">${esc(problem)}</p>` : ''}
 <form id="fu-board-form" class="fu-form fu-card" method="post" action="/quests/boards">
-<label class="fu-field"><span>Live channel</span><input name="live_username" type="text" maxlength="64" value="${esc(v.live_username || '')}" required placeholder="ada"></label>
+<label class="fu-field"><span>Live channel</span><input name="live_username" type="text" maxlength="64" value="${esc(v.live_username || '')}" required placeholder="your channel name"></label>
 <label class="fu-field"><span>Board title</span><input name="title" type="text" maxlength="120" value="${esc(v.title || '')}" required placeholder="Saturday IRL quests"></label>
 <label class="fu-field"><span>City (optional)</span><input name="city" type="text" maxlength="120" value="${esc(v.city || '')}" placeholder="Portland, Oregon"></label>
-<label class="fu-field"><span>Closes at (ISO time, optional)</span><input name="closes_at" type="text" maxlength="40" value="${esc(v.closes_at || '')}" placeholder="2026-10-28T22:00:00Z"></label>
+<label class="fu-field"><span>Closes (optional, four hours from now if empty)</span><input name="closes_at" type="datetime-local" value="${esc(v.closes_at || '')}"></label>
+<input type="hidden" name="timezone" value="${esc(v.timezone || 'UTC')}" data-auto>
 <label class="fu-field"><span>Most suggestions</span><input name="max_suggestions" type="number" min="1" max="100" value="${esc(v.max_suggestions || 30)}"></label>
 <label class="fu-check"><input type="checkbox" name="accessible_only" value="1"${v.accessible_only ? ' checked' : ''}> Only accessible activities</label>
 <label class="fu-field"><span>Chat channel for votes</span><input name="chat_username" type="text" maxlength="64" value="${esc(v.chat_username || '')}" placeholder="defaults to the Live channel"></label>
 <div class="fu-actions"><button class="fu-btn" type="submit">Open the board</button></div>
+<script>(function(){try{var z=Intl.DateTimeFormat().resolvedOptions().timeZone;document.querySelectorAll('input[name=timezone][data-auto]').forEach(function(i){if(z&&(!i.value||i.value==='UTC'))i.value=z;});}catch(e){}})();</script>
 <p class="fu-fine">The board itself is unlisted; only the quest you accept becomes public.</p>
 </form></div>`;
 }
@@ -323,17 +325,17 @@ ${v.place ? `<p class="fu-note">Planning a visit to ${esc(v.place)}${v.place_url
 <label class="fu-field"><span>Plan title</span><input name="title" type="text" maxlength="120" value="${esc(v.title || '')}" required placeholder="Friday with the group"></label>
 <label class="fu-field"><span>Why / notes (optional)</span><textarea name="summary" rows="2" maxlength="1200">${esc(v.summary || '')}</textarea></label>
 <label class="fu-field"><span>City</span><input name="city" type="text" maxlength="120" value="${esc(v.city || '')}" placeholder="Portland, Oregon"></label>
-<label class="fu-field"><span>Starts at (ISO time)</span><input name="starts_at" type="text" maxlength="40" value="${esc(v.starts_at || '')}" required placeholder="YYYY-MM-DDTHH:MM:SSZ"></label>
-<label class="fu-field"><span>Voting closes at (ISO time, optional)</span><input name="closes_at" type="text" maxlength="40" value="${esc(v.closes_at || '')}" placeholder="YYYY-MM-DDTHH:MM:SSZ"></label>
-<label class="fu-field"><span>Timezone</span><input name="timezone" type="text" maxlength="80" value="${esc(v.timezone || 'UTC')}" placeholder="America/Los_Angeles"></label>
+<label class="fu-field"><span>When</span><input name="starts_at" type="datetime-local" value="${esc(v.starts_at || '')}" required></label>
+<label class="fu-field"><span>Voting closes (optional)</span><input name="closes_at" type="datetime-local" value="${esc(v.closes_at || '')}"></label>
+<label class="fu-field"><span>Time zone</span><input name="timezone" type="text" maxlength="80" value="${esc(v.timezone || 'UTC')}" placeholder="America/Los_Angeles" data-auto></label>
 <label class="fu-field"><span>Who can see it?</span><select name="visibility"><option value="unlisted"${v.visibility === 'unlisted' ? ' selected' : ''}>Anyone with the link</option><option value="public"${v.visibility === 'public' ? ' selected' : ''}>Public</option><option value="hidden"${v.visibility === 'hidden' ? ' selected' : ''}>Only me</option></select></label>
-<label class="fu-field"><span>Chat channel for votes (optional)</span><input name="chat_username" type="text" maxlength="64" value="${esc(v.chat_username || '')}" placeholder="ada"></label>
+<label class="fu-field"><span>Also take votes in a Live chat (optional)</span><input name="chat_username" type="text" maxlength="64" value="${esc(v.chat_username || '')}" placeholder="a channel name, like yours"></label>
 <fieldset class="fu-options"><legend>Options</legend>
 ${opts.map((o, i) => `<label class="fu-field"><span>Option ${i + 1}${i === 0 ? '' : ' (optional)'}</span><input name="option${i + 1}_title" type="text" maxlength="120" value="${esc(o)}" placeholder="${i === 0 ? 'The mural walk' : ''}"></label><label class="fu-field"><span>Option ${i + 1} date and time (optional)</span><input name="option${i + 1}_starts_at" type="datetime-local" value="${esc(v[`option${i + 1}_starts_at`] || '')}"></label>`).join('')}
 </fieldset>
 <div class="fu-actions"><button class="fu-btn" type="submit">Start the plan</button></div>
-<p class="fu-fine">The group can vote on dates as well as activities. The selected option's date becomes the plan date. Enter ISO time for the main start; voting closes one hour before it when left blank.</p>
-</form></div>`;
+<p class="fu-fine">The group can vote on dates as well as activities. The selected option's date becomes the plan date. Times are in the time zone above, filled in from your device; voting closes an hour before the start unless you pick a time.</p>
+</form><script>(function(){try{var z=Intl.DateTimeFormat().resolvedOptions().timeZone;document.querySelectorAll('input[name=timezone][data-auto]').forEach(function(i){if(z&&(!i.value||i.value==='UTC'))i.value=z;});}catch(e){}})();</script></div>`;
 }
 
 function plans({ plans: list = [], now = Date.now(), base = '' } = {}) {
