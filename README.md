@@ -2,6 +2,9 @@
 
 > Something to do, alone, together, or live.
 
+**Live site:** https://openvibe.fun · **API docs:** https://openvibe.services · **For AI:** https://openvibe.fun/llms.txt
+**Run it:** `npm ci && npm run dev` (Node 22 or newer) · **Tests:** `npm test`
+
 **Status:** v1 written and tested (see [STATUS.json](STATUS.json)).
 **Domain:** `openvibe.fun` · **Port:** 5140 · **Service id:** `fun` · **Env prefix:** `FUN`
 **License:** AGPL-3.0-only (the same as every OpenVibe service).
