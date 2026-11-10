@@ -135,8 +135,6 @@ html.ov-motion .fu-flip-card { animation: fu-flip .8s cubic-bezier(.2,.7,.2,1) .
 
 /* Phones keep the map's pins and the quest card, smaller (11-07: hidden, the map read as an empty grid). */
 @media (max-width: 759px) { .sc-room-pic .fu-pin { font-size: .66rem; padding: 4px 8px; } .sc-room-pic .fu-flip-card { width: min(80%, 240px); padding: 8px 12px; } .sc-room-pic .fu-flip-card b { font-size: .84rem; } .sc-room-pic .fu-pin-3 { left: 30%; top: 50%; } }
-@media (prefers-reduced-motion: reduce) { .fu-pin, .fu-flip-card { animation: none !important; } }
-html[data-ov-motion=reduced] .fu-pin, html[data-ov-motion=reduced] .fu-flip-card { animation: none !important; }
 
 /* Real things first (10-31): the guide's call to action, and one short "be the first" row for what has no entries yet. */
 .fu-cta { display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: 999px; background: var(--room-strong, var(--room-accent)); color: var(--room-on, #fff); font-weight: 700; text-decoration: none; }
