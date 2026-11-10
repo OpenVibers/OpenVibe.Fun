@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use OpenVibe.Fun in research or a product, cite it as below."
+title: openvibe-fun
+type: software
+authors:
+  - name: OpenVibe
+    alias: OpenVibers
+    website: https://openvibe.network
+repository-code: https://github.com/OpenVibers/OpenVibe.Fun
+url: https://openvibe.fun
+license: AGPL-3.0-only
+abstract: "Quests and things to do alone, together or live, with a local guide, at openvibe.fun."
+keywords:
+  - openvibe
+  - events
+  - fun
+  - irl
+  - openstreetmap
