@@ -41,7 +41,7 @@ function jsonLd(html) {
             assert.strictEqual(r.status, 200);
             assert.strictEqual(r.headers.get('cache-control'), 'public, max-age=60');
             assert.strictEqual(r.headers.get('vary'), 'Cookie');
-            for (const marker of ['id="fu-home"', 'id="fu-featured"', 'id="fu-plans"', 'id="fu-guide-teaser"', 'class="sc-room-scenes"', '<noscript><nav', '<footer id="ov-footer"', '<main id="main"', 'Find the best bench with a view', '/guide']) assert.ok(r.text.includes(marker), marker);
+            for (const marker of ['id="fu-home"', 'id="fu-featured"', 'id="fu-plans"', 'id="fu-guide-teaser"', 'class="sc-room-scenes"', '<div id="navbar-mount"><nav', '<footer id="ov-footer"', '<main id="main"', 'Find the best bench with a view', '/guide']) assert.ok(r.text.includes(marker), marker);
             const types = jsonLd(r.text).map((x) => x['@type']);
             assert.ok(types.includes('WebSite'), types.join(','));
             assert.ok(types.includes('WebApplication'), types.join(','));
@@ -111,7 +111,7 @@ function jsonLd(html) {
             for (const p of ['/', '/guide', '/quests', '/plans', '/developers']) {
                 const r = await t.get(p);
                 assert.strictEqual(r.status, 200, p);
-                assert.match(r.text, /<noscript><nav/);
+                assert.match(r.text, /<div id="navbar-mount"><nav class="openvibe-navbar"[^>]*data-ov-server-nav="true"/, `${p}: the server-rendered navbar is in the first HTML`);
                 assert.match(r.text, /<footer id="ov-footer"/);
                 assert.match(r.text, /<main id="main"/);
             }
