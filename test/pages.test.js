@@ -124,7 +124,7 @@ function jsonLd(html) {
             assert.strictEqual(hashed.headers.get('cache-control'), 'public, max-age=31536000, immutable');
             const wrong = await t.get('/css/fun.css?v=deadbeefdeadbeef');
             assert.strictEqual(wrong.status, 200);
-            assert.strictEqual(wrong.headers.get('cache-control'), 'public, max-age=300, stale-while-revalidate=86400');
+            assert.strictEqual(wrong.headers.get('cache-control'), 'public, max-age=300, stale-while-revalidate=300');
             const css = await t.get('/css/fun.css');
             assert.match(css.text, /OpenVibe\.Fun: the room's own pieces/, 'the designed stylesheet');
             const js = await t.get('/js/fun.js');
