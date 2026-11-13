@@ -69,7 +69,7 @@ function homeBoard(q) {
 /** The plan scene: the first real public plan and its real time and place, or the way to start the first one. */
 function homePlan(p) {
     if (!p) return `<div class="fu-demo-plan"><span class="fu-status fu-status-voting">No plan yet</span><b>Start one for your group</b><small>Send the link and the vote picks the plan.</small><a href="/plans/new">Start a plan</a></div>`;
-    return `<div class="fu-demo-plan"><span class="fu-pin fu-pin-static">${esc(p.city || 'a place')}</span><span class="fu-arrow">→</span><span class="fu-status fu-status-${esc(p.status)}">${esc(STATUS_LABEL[p.status] || p.status)}</span><b>${esc(p.title)}</b><small>${esc(when(p.starts_at))}</small><a href="/plans/${esc(p.slug)}">Open the plan</a></div>`;
+    return `<div class="fu-demo-plan"><span class="fu-pin fu-pin-static">${esc(p.city || 'a place')}</span><span class="fu-arrow" aria-hidden="true"><i data-ov-icon="arrow-right"></i></span><span class="fu-status fu-status-${esc(p.status)}">${esc(STATUS_LABEL[p.status] || p.status)}</span><b>${esc(p.title)}</b><small>${esc(when(p.starts_at))}</small><a href="/plans/${esc(p.slug)}">Open the plan</a></div>`;
 }
 
 function cityMotif(quest = null) {
