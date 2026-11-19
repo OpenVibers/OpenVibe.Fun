@@ -236,7 +236,7 @@ SSO, pages/cache, coins opt-in, and account export/deletion.
 AGPL-3.0-only. See [LICENSE](LICENSE).
 
 <!-- versions:start -->
-- openvibe-contracts: v0.443.0
+- openvibe-contracts: v0.449.0
 - openvibe-sdk: v0.188.0
 - openvibe-shared: v4.320.0
 - openvibe-publishing: v1.7.0
